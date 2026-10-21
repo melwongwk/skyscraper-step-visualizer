@@ -5,7 +5,7 @@ every placement being accepted, rejected or undone, compares row-by-row,
 column-by-column and brute-force search, and can replay a trace from your own C
 solver. It is meant for learning how backtracking algorithms solve puzzles.
 
-**Live site:** add your Vercel link here.
+**Live site:** [Skyscraper Step Visualizer](https://skyscraper-step-visualizer.vercel.app/)
 
 ## Themes
 
