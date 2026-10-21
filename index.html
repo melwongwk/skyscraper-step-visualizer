@@ -199,7 +199,8 @@ select { flex: 0 1 260px; font-size: 0.88rem; }
 .trace-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; align-items: baseline; }
 .trace-head .note { color: var(--muted); font-size: 0.78rem; font-family: var(--mono); }
 .trace svg { display: block; width: 100%; height: 72px; margin-top: 4px; background: var(--cell); border: 1px solid var(--line); border-radius: 3px; }
-.trace-axis { display: flex; justify-content: space-between; color: var(--muted); font-family: var(--mono); font-size: 0.72rem; margin-top: 2px; }
+.trace-axis span { white-space: nowrap; }
+.trace-axis { display: flex; gap: 8px; justify-content: space-between; color: var(--muted); font-family: var(--mono); font-size: 0.72rem; margin-top: 2px; }
 .tabcard { padding-top: 0; container-type: inline-size; }
 .tabs { display: flex; flex-wrap: wrap; margin: 0 -14px 14px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--cell) 55%, var(--panel)); border-radius: 6px 6px 0 0; }
 .tab { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 12px 14px; font: inherit; font-size: 0.9rem; font-weight: 500; color: var(--muted); cursor: pointer; min-height: 44px; line-height: 1.2; text-align: center; }
@@ -385,7 +386,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
       <div class="trace">
         <div class="trace-head"><span class="label">Depth over time</span><span class="note" id="trace-note"></span></div>
         <svg id="trace" viewBox="0 0 600 72" preserveAspectRatio="none" role="img" aria-label="Chart of how many buildings were standing at each step"></svg>
-        <div class="trace-axis"><span>step 0</span><span id="trace-end"></span></div>
+        <div class="trace-axis"><span>step 0</span><span id="trace-key"></span><span id="trace-end"></span></div>
       </div>
       <p class="board-note">Clues sit on the edge they are read from. A clue gets a ✓ and a tint when its view is locked in, and a ✕ when the last placement broke it. Darker cells hold taller buildings. After a rejection, the dark-ringed numbers show what the failing clue counted.</p>
     </section>
