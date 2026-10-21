@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skyscraper Step Visualizer</title>
+<meta name="description" content="Watch skyscraper puzzle solvers work, one step at a time. See each placement accepted, rejected or undone, compare row-by-row, column-by-column and brute-force search, or replay a trace from your own C solver.">
+<meta name="theme-color" content="#1f5fbf">
+<script>try{var t=localStorage.getItem("sky-theme");if(/^(light|dark|colorblind|synthwave|terminal)$/.test(t))document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Skyscraper Step Visualizer">
+<meta property="og:description" content="Watch skyscraper puzzle solvers work, one step at a time. See each placement accepted, rejected or undone, compare row-by-row, column-by-column and brute-force search, or replay a trace from your own C solver.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f5fbf'/%3E%3Crect x='5' y='17' width='5' height='10' fill='%23fff'/%3E%3Crect x='11.5' y='10' width='5' height='17' fill='%23fff'/%3E%3Crect x='18' y='14' width='5' height='13' fill='%23fff'/%3E%3Crect x='24' y='6' width='3' height='21' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+/* Layout: a bench-style tool. Board on the left, counters and controls on the
+   right, per-number breakdown underneath. Shading on cells follows height. */
+:root {
+  --bg: #edf0f3;
+  --panel: #fafbfc;
+  --cell: #ffffff;
+  --ink: #15212c;
+  --muted: #586979;
+  --line: #d2d9e0;
+  --accent: #1f5fbf;
+  --ok: #166f4e;
+  --rej: #b43228;
+  --dead: #895709;
+  --undo: #7144b5;
+  color-scheme: light;
+  --ok-soft: color-mix(in srgb, var(--ok) 14%, var(--panel));
+  --rej-soft: color-mix(in srgb, var(--rej) 14%, var(--panel));
+  --dead-soft: color-mix(in srgb, var(--dead) 16%, var(--panel));
+  --undo-soft: color-mix(in srgb, var(--undo) 14%, var(--panel));
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--panel));
+  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+/* Themes. Auto follows the system setting; the others are chosen with the Theme menu. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #0e1419; --panel: #151d25; --cell: #1b252f; --ink: #e5ecf2; --muted: #95a5b4; --line: #2a3642; --accent: #6ba4f2; --ok: #4cc38a; --rej: #f0695f; --dead: #e2a63b; --undo: #b48cf2;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #edf0f3; --panel: #fafbfc; --cell: #ffffff; --ink: #15212c; --muted: #586979; --line: #d2d9e0; --accent: #1f5fbf; --ok: #166f4e; --rej: #b43228; --dead: #895709; --undo: #7144b5;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0e1419; --panel: #151d25; --cell: #1b252f; --ink: #e5ecf2; --muted: #95a5b4; --line: #2a3642; --accent: #6ba4f2; --ok: #4cc38a; --rej: #f0695f; --dead: #e2a63b; --undo: #b48cf2;
+  color-scheme: dark;
+}
+:root[data-theme="colorblind"] {
+  --bg: #f3f3f1; --panel: #fbfbfa; --cell: #ffffff; --ink: #16181a; --muted: #555a60; --line: #cdd0d3; --accent: #0b5cad; --ok: #00667a; --rej: #a84300; --dead: #2b3640; --undo: #5a3fa0;
+  color-scheme: light;
+}
+:root[data-theme="synthwave"] {
+  --bg: #140b2e; --panel: #1e1245; --cell: #271758; --ink: #f7ebff; --muted: #bba3e6; --line: #4b3190; --accent: #ff5ccf; --ok: #36f2c8; --rej: #ff7a59; --dead: #ffd447; --undo: #a98bff;
+  color-scheme: dark;
+}
+:root[data-theme="terminal"] {
+  --bg: #050a06; --panel: #0a120c; --cell: #0f1a12; --ink: #c9f7d4; --muted: #86b794; --line: #22402a; --accent: #39d98a; --ok: #7cfc9a; --rej: #ff6b5e; --dead: #ffb454; --undo: #6ec1ff;
+  color-scheme: dark;
+  --font: var(--mono);
+}
+:root[data-theme="synthwave"] body { background-image: radial-gradient(ellipse 80% 40% at 50% -5%, color-mix(in srgb, var(--accent) 20%, transparent), transparent); background-repeat: no-repeat; }
+:root[data-theme="synthwave"] h1 { text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
+:root[data-theme="synthwave"] .card { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent), 0 0 22px color-mix(in srgb, var(--accent) 9%, transparent); }
+:root[data-theme="terminal"] body { font-size: 14px; }
+.head-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.theme-pick { display: flex; align-items: center; gap: 8px; }
+.theme-pick select { flex: 0 0 auto; min-width: 0; max-width: 100%; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink); font-family: var(--font);
+  font-size: 15px; line-height: 1.45;
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.page { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+h1 { font-size: 1.5rem; line-height: 1.2; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.lede { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; min-width: 0; }
+.label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+
+/* Load row */
+.load { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.load-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+.load-row > * { min-width: 0; }
+#clues { flex: 1 1 320px; font-family: var(--mono); font-size: 0.9rem; }
+input[type="text"], select {
+  background: var(--cell); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 4px; padding: 8px 10px; font: inherit; min-height: 38px;
+}
+select { flex: 0 1 260px; font-size: 0.88rem; }
+.btn {
+  background: var(--cell); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 4px; padding: 8px 14px; font: inherit; font-weight: 600;
+  min-height: 38px; cursor: pointer;
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.err { color: var(--rej); font-weight: 500; min-height: 1.4em; margin: 0; }
+.seg { display: inline-flex; max-width: 100%; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; align-self: flex-start; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: 0.88rem; background: var(--cell); color: var(--muted); min-height: 38px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.15; flex: 1 1 auto; min-width: 0; }
+.seg input:checked + label { background: var(--accent); color: var(--bg); }
+.seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pick-row { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.pick-row > * { min-width: 0; }
+.pick-row select { flex: 0 1 220px; }
+.mode-row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.mode-note { color: var(--muted); font-size: 0.85rem; }
+.opt-note { margin: 0; color: var(--muted); font-size: 0.85rem; max-width: 84ch; }
+@media (max-width: 480px) { .seg label { padding: 8px 9px; font-size: 0.8rem; } }
+
+[hidden] { display: none !important; }
+.cmp-card { display: grid; gap: 10px; }
+.cmp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.cmp-card p { margin: 0; color: var(--muted); font-size: 0.82rem; }
+.cmp-card td.best { color: var(--ok); font-weight: 700; }
+.runbar { display: grid; gap: 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--cell); padding: 10px 12px; margin-bottom: 10px; }
+.runbar .run-text { font-family: var(--mono); font-size: 0.84rem; overflow-wrap: anywhere; }
+.runbar .run-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.prog { height: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 2px; overflow: hidden; position: relative; }
+.prog i { display: block; height: 100%; width: 0; background: var(--accent); }
+.prog.indet i { width: 30%; position: absolute; animation: slide 1.4s ease-in-out infinite alternate; }
+@keyframes slide { from { left: 0; } to { left: 70%; } }
+.jump { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 10px; }
+.jump input { flex: 1 1 140px; min-width: 0; font-family: var(--mono); font-size: 0.9rem; }
+
+/* Stage */
+.stage { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 640px) { .stage { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (min-width: 1000px) { .stage { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); } }
+.col { display: grid; gap: 16px; min-width: 0; align-content: start; }
+/* One column on narrow screens: board, controls, counters, statistics. */
+@media (max-width: 639px) {
+  .col { display: contents; }
+  .c-board { order: 1; } .c-controls { order: 2; } .c-counters { order: 3; } .c-stats { order: 4; }
+}
+.status { display: flex; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 10px; align-items: baseline; }
+.status strong { font-size: 1.02rem; }
+.status .rate { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); }
+.board {
+  display: grid; grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr));
+  gap: 3px; width: 100%; max-width: 560px; margin: 0 auto;
+  container-type: inline-size;
+}
+.cell {
+  aspect-ratio: 1; display: grid; place-items: center; min-width: 0;
+  font-family: var(--mono); font-weight: 700;
+  font-size: calc(100cqw / var(--cols, 7) * 0.44);
+  border-radius: 3px; position: relative;
+}
+.cell.clue { color: var(--muted); font-weight: 600; font-size: calc(100cqw / var(--cols, 7) * 0.36); }
+.cell.clue.met { color: var(--ok); background: var(--ok-soft); }
+.cell.clue.bad { color: var(--rej); background: var(--rej-soft); }
+.cell.clue.met::after, .cell.clue.bad::after { position: absolute; top: 2px; right: 5px; line-height: 1; font-size: calc(100cqw / var(--cols, 7) * 0.27); font-weight: 700; }
+.cell.clue.met::after { content: "\2713"; }
+.cell.clue.bad::after { content: "\2715"; }
+.cell.in {
+  background: color-mix(in srgb, var(--accent) calc(var(--h, 0) * 42%), var(--cell));
+  border: 1px solid var(--line);
+}
+.cell.in.band { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.cell.in.band.deadband { border-color: var(--dead); box-shadow: 0 0 0 1px var(--dead); background: var(--dead-soft); }
+.cell.in.cnt { box-shadow: inset 0 0 0 2px var(--ink); }
+.cell.in.gapc { outline: 2px dashed var(--rej); outline-offset: -3px; }
+.cell.in.cnt::after, .cell.in.gapc::after {
+  content: attr(data-s); position: absolute; top: 1px; left: 3px; line-height: 1;
+  font-size: calc(100cqw / var(--cols, 7) * 0.2); font-weight: 700; color: var(--ink);
+}
+.cell.in.gapc::after { color: var(--rej); }
+.cell.in.evok { box-shadow: inset 0 0 0 3px var(--ok); }
+.cell.in.evrej { box-shadow: inset 0 0 0 3px var(--rej); background: var(--rej-soft); color: var(--rej); }
+.cell.in.evundo { box-shadow: inset 0 0 0 3px var(--undo); background: var(--undo-soft); color: var(--undo); }
+.cell.in.ghost { text-decoration: line-through; text-decoration-thickness: 2px; }
+.board.solved .cell.in { border-color: var(--ok); }
+.why { margin: 10px auto 0; max-width: 560px; min-height: 4.4em; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
+.why .w { display: block; color: var(--ink); }
+.why .w b { color: var(--rej); }
+.why .key { display: block; margin-top: 3px; }
+.trace { margin: 8px auto 0; max-width: 560px; }
+.trace-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; align-items: baseline; }
+.trace-head .note { color: var(--muted); font-size: 0.78rem; font-family: var(--mono); }
+.trace svg { display: block; width: 100%; height: 72px; margin-top: 4px; background: var(--cell); border: 1px solid var(--line); border-radius: 3px; }
+.trace-axis { display: flex; justify-content: space-between; color: var(--muted); font-family: var(--mono); font-size: 0.72rem; margin-top: 2px; }
+.tabcard { padding-top: 0; container-type: inline-size; }
+.tabs { display: flex; flex-wrap: wrap; margin: 0 -14px 14px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--cell) 55%, var(--panel)); border-radius: 6px 6px 0 0; }
+.tab { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 12px 14px; font: inherit; font-size: 0.9rem; font-weight: 500; color: var(--muted); cursor: pointer; min-height: 44px; line-height: 1.2; text-align: center; }
+.tab:first-child { border-top-left-radius: 6px; }
+.tab:hover { color: var(--ink); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.tab[aria-selected="true"] { color: var(--ink); font-weight: 600; background: var(--panel); border-bottom-color: var(--accent); }
+.tab:focus-visible { outline-offset: -2px; }
+.tabcard .runbar { margin-top: 14px; }
+@container (max-width: 560px) {
+  .tabcard table { min-width: 0; }
+  .tabcard th.share, .tabcard td.share { display: none; }
+  .tabcard table { font-size: 0.8rem; }
+  .tabcard th, .tabcard td { padding: 6px 4px; }
+  .tabcard th { white-space: normal; line-height: 1.15; vertical-align: bottom; }
+}
+.tabpanel { min-width: 0; }
+.tabpanel > .hint:first-child { margin-top: 0; margin-bottom: 8px; }
+.tabpanel .seg { margin-bottom: 10px; }
+.depth-scroll { max-height: 26em; overflow: auto; }
+#depth-body td:nth-child(2) { text-align: left; font-family: var(--font); }
+tr.now td { background: var(--accent-soft, var(--cell)); }
+.board-note { margin: 12px auto 0; max-width: 560px; color: var(--muted); font-size: 0.82rem; }
+
+/* Counters */
+.c-counters { container-type: inline-size; }
+.tiles { display: grid; gap: 8px; }
+.tile { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; background: var(--cell); min-width: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: center; }
+.tile .t-label { grid-column: 1; grid-row: 1; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; display: flex; gap: 6px; align-items: center; }
+.tile .t-num { grid-column: 2; grid-row: 1 / span 2; text-align: right; font-family: var(--mono); font-weight: 700; font-size: 1.55rem; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 420px) { .tile .t-num { font-size: 1.2rem; } }
+.tile .t-sub { grid-column: 1; grid-row: 2; font-size: 0.76rem; color: var(--muted); line-height: 1.3; margin-top: 2px; }
+.tile.ok .t-label, .tile.ok .t-num { color: var(--ok); }
+.tile.rej .t-label, .tile.rej .t-num { color: var(--rej); }
+.tile.dead .t-label, .tile.dead .t-num { color: var(--dead); }
+.minis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.mini { min-width: 0; }
+.mini b { display: block; font-family: var(--mono); font-size: 0.98rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.depth { margin-top: 10px; }
+.depth-bar { height: 8px; background: var(--cell); border: 1px solid var(--line); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+.depth-bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.depth-text { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+@container (max-width: 440px) {
+  .tile { grid-template-columns: minmax(0, 1fr); }
+  .tile .t-label { grid-row: 1; }
+  .tile .t-num { grid-column: 1; grid-row: 2; grid-row-end: auto; text-align: left; font-size: 1.35rem; margin-top: 2px; }
+  .tile .t-sub { grid-row: 3; }
+  .minis { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .mini { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .mini b { text-align: right; overflow-wrap: normal; }
+}
+
+
+/* Statistics */
+.stats { margin: 6px 0 14px; display: grid; gap: 0; }
+.st { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 12px; padding: 7px 0; border-top: 1px solid var(--line); }
+.st:first-child { border-top: 0; }
+.st dt { font-weight: 600; font-size: 0.88rem; flex: 0 1 auto; }
+.st dd { margin: 0 0 0 auto; font-family: var(--mono); font-weight: 700; font-size: 0.95rem; text-align: right; font-variant-numeric: tabular-nums; flex: 0 1 auto; max-width: 100%; overflow-wrap: anywhere; }
+.st p { flex: 1 0 100%; margin: 1px 0 0; color: var(--muted); font-size: 0.76rem; line-height: 1.3; }
+.rules-h { display: block; margin-top: 4px; }
+
+/* Controls */
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.speed { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.speed input[type="range"] { flex: 1 1 140px; min-width: 0; accent-color: var(--accent); }
+.speed output { font-family: var(--mono); font-size: 0.82rem; min-width: 11ch; color: var(--muted); }
+.hint { color: var(--muted); font-size: 0.8rem; margin: 8px 0 0; }
+
+/* Log */
+.log { list-style: none; margin: 8px 0 0; padding: 0 6px 0 0; display: grid; gap: 4px; align-content: start; height: 17em; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.log li { display: grid; grid-template-columns: max-content 1.3em minmax(0, 1fr); gap: 6px; font-size: 0.84rem; align-items: baseline; padding: 3px 0; border-top: 1px solid var(--line); }
+.log li:first-child { border-top: 0; }
+.log li:last-child { font-weight: 500; }
+.log .n { font-family: var(--mono); color: var(--muted); font-size: 0.76rem; text-align: right; white-space: nowrap; min-width: var(--nw, 5.5ch); }
+.log .g { font-weight: 700; text-align: center; }
+.log .t1 .g { color: var(--ok); } .log .t2 .g { color: var(--rej); }
+.log .t3 .g { color: var(--dead); } .log .t4 .g { color: var(--undo); }
+.log .empty { color: var(--muted); display: block; border: 0; }
+
+/* Table */
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 780px; font-size: 0.86rem; }
+caption { text-align: left; padding-bottom: 8px; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; white-space: nowrap; }
+th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+th:first-child, td:first-child { text-align: left; }
+td { font-family: var(--mono); }
+td.num { font-weight: 700; }
+th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
+.bar { height: 8px; }
+.bar i { display: block; height: 8px; background: var(--accent); border-radius: 1px; min-width: 1px; }
+
+/* Own-solver traces */
+.site-foot { margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.82rem; display: grid; gap: 4px; max-width: 78ch; }
+.site-foot p { margin: 0; }
+.site-foot a { color: var(--accent); }
+.howto { margin-top: 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); padding: 8px 12px; max-width: 78ch; }
+.howto > summary { cursor: pointer; font-weight: 600; padding: 4px 0; min-height: 28px; }
+.howto[open] > summary { margin-bottom: 4px; }
+.howto h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 12px 0 2px; }
+.howto p, .howto li { font-size: 0.88rem; margin: 2px 0; }
+.howto ul, .howto ol { margin: 2px 0; padding-left: 1.2em; }
+.tracebox { border: 1px solid var(--line); border-radius: 4px; background: var(--cell); padding: 8px 12px; }
+.tracebox > summary { cursor: pointer; font-weight: 600; padding: 4px 0; min-height: 28px; }
+.tracebox[open] > summary { margin-bottom: 6px; }
+.tracebox .hint:first-of-type { margin-top: 0; }
+.tracebox code { font-family: var(--mono); font-size: 0.78rem; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; overflow-wrap: anywhere; }
+.drop { margin-top: 10px; border: 2px dashed var(--line); border-radius: 4px; padding: 16px 12px; text-align: center; color: var(--muted); cursor: pointer; background: var(--panel); }
+.drop:hover, .drop.over { border-color: var(--accent); color: var(--ink); background: var(--accent-soft); }
+.tracebox .mode-row { margin-top: 10px; }
+.tracebox select { max-width: 100%; flex: 1 1 180px; }
+.tracebox .err:empty { display: none; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="head-top">
+      <h1>Skyscraper Step Visualizer</h1>
+      <div class="theme-pick">
+        <label class="label" for="theme">Theme</label>
+        <select id="theme" aria-label="Colour theme">
+          <option value="auto">Auto (system)</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="colorblind">Color blind</option>
+          <option value="synthwave">Synthwave</option>
+          <option value="terminal">Terminal</option>
+        </select>
+      </div>
+    </div>
+    <p class="lede">Watch a solver place buildings, reject, back up and undo until every clue fits. Pick a solving option (row by row, column by column or brute force), or load a trace from your own solver. Any size from 1×1 to 9×9.</p>
+    <details class="howto" id="howto">
+      <summary>How to read this</summary>
+      <h2>The board</h2>
+      <p>Each clue on the edge says how many buildings you can see looking along that row or column from that side. A taller building hides every shorter one behind it. Every row and column holds each height exactly once.</p>
+      <h2>The counters</h2>
+      <ul>
+        <li><b>Accepted:</b> a building was placed and every clue can still be met.</li>
+        <li><b>Rejected:</b> a placement broke a clue, so it was removed straight away and the solver tries the next option.</li>
+        <li><b>Dead end:</b> nothing is left to try at this point, so the solver backs up and undoes the placement before it. This is backtracking.</li>
+      </ul>
+      <h2>Why the options differ</h2>
+      <p>Row by row and column by column place the tallest buildings first and check the clues after every placement, so a bad choice is caught early. Brute force fills cells one at a time and checks a clue only once its whole row or column is full, so it explores far more dead ends before noticing a mistake.</p>
+      <h2>Try this</h2>
+      <ol>
+        <li>Pick a size and an example puzzle, open the Simulation tab and press Step a few times to follow the log.</li>
+        <li>Press Solve, then look at the depth chart: it shows how far the solver climbed and fell back.</li>
+        <li>Press Compare all three and see how many steps each option needed.</li>
+      </ol>
+    </details>
+  </header>
+
+  <div class="stage">
+    <div class="col">
+    <section class="card c-board" aria-label="Board">
+      <div class="status"><strong id="status">Loading</strong><span class="rate" id="rate"></span></div>
+      <div class="board" id="board" role="img" aria-label="Skyscraper grid with clues"></div>
+      <div class="why" id="why" aria-live="off"></div>
+      <div class="trace">
+        <div class="trace-head"><span class="label">Depth over time</span><span class="note" id="trace-note"></span></div>
+        <svg id="trace" viewBox="0 0 600 72" preserveAspectRatio="none" role="img" aria-label="Chart of how many buildings were standing at each step"></svg>
+        <div class="trace-axis"><span>step 0</span><span id="trace-end"></span></div>
+      </div>
+      <p class="board-note">Clues sit on the edge they are read from. A clue gets a ✓ and a tint when its view is locked in, and a ✕ when the last placement broke it. Darker cells hold taller buildings. After a rejection, the dark-ringed numbers show what the failing clue counted.</p>
+    </section>
+
+      <section class="card c-counters" aria-label="Counters">
+        <div class="tiles">
+          <div class="tile ok"><div class="t-label"><span aria-hidden="true">&#10003;</span>Accepted</div><div class="t-num" id="c-acc">0</div><div class="t-sub" id="ts-acc">Placed, and every clue is still reachable.</div></div>
+          <div class="tile rej"><div class="t-label"><span aria-hidden="true">&#10005;</span>Rejected</div><div class="t-num" id="c-rej">0</div><div class="t-sub" id="ts-rej">Placed, failed the clue check, removed at once.</div></div>
+          <div class="tile dead"><div class="t-label"><span aria-hidden="true">&#8856;</span>Dead ends</div><div class="t-num" id="c-dead">0</div><div class="t-sub" id="ts-dead">No free cell left for the number being placed. Each one makes the solver undo the placement before it.</div></div>
+        </div>
+        <div class="minis">
+          <div class="mini"><span class="label">Steps</span><b id="c-steps">0</b></div>
+          <div class="mini"><span class="label">Calls</span><b id="c-calls">0</b></div>
+          <div class="mini"><span class="label">Removals</span><b id="c-rem">0</b></div>
+        </div>
+        <div class="depth">
+          <span class="label">Buildings standing</span>
+          <div class="depth-bar"><i id="depth-fill"></i></div>
+          <div class="depth-text" id="depth-text"></div>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="col">
+      <section class="card c-controls tabcard" aria-label="Controls and results">
+        <div class="runbar" id="runbar" hidden>
+          <div class="run-text" id="run-text" role="status"></div>
+          <div class="prog indet" id="run-prog"><i id="run-fill"></i></div>
+          <div class="run-actions">
+            <button class="btn" id="run-stop" type="button">Stop here</button>
+            <button class="btn" id="run-cancel" type="button">Cancel and go back</button>
+          </div>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Panels">
+          <button class="tab" role="tab" id="tab-puz" aria-controls="panel-puz" aria-selected="true" type="button">Puzzle</button>
+          <button class="tab" role="tab" id="tab-sim" aria-controls="panel-sim" aria-selected="false" tabindex="-1" type="button">Simulation</button>
+          <button class="tab" role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false" tabindex="-1" type="button">Statistics</button>
+          <button class="tab" role="tab" id="tab-brk" aria-controls="panel-brk" aria-selected="false" tabindex="-1" type="button">Breakdown</button>
+          <button class="tab" role="tab" id="tab-cmp" aria-controls="panel-cmp" aria-selected="false" tabindex="-1" type="button">Compare</button>
+        </div>
+        <div class="tabpanel load" role="tabpanel" id="panel-puz" aria-labelledby="tab-puz">
+          <div class="load-row">
+            <input type="text" id="clues" spellcheck="false" autocomplete="off" placeholder="Type clues, separated by spaces" aria-label="Clues, separated by spaces">
+            <button class="btn primary" id="load" type="button">Load puzzle</button>
+          </div>
+          <div class="pick-row">
+            <span class="label">Or pick one</span>
+            <select id="size" aria-label="Puzzle size"></select>
+            <select id="preset" aria-label="Example puzzles" disabled></select>
+            <button class="btn" id="b-random" type="button" disabled title="Pick a size first">Random puzzle</button>
+          </div>
+          <p class="err" id="err" role="alert"></p>
+          <p class="hint" id="size-note"></p>
+          <p class="hint">Clues go in one row: the top edge left to right, then the bottom edge left to right, then the left edge top to bottom, then the right edge top to bottom.</p>
+          <details class="tracebox" id="tracebox">
+            <summary>Use your own solver</summary>
+            <p class="hint">Nothing of yours runs here. Your C solver writes a trace of every number it places and removes, and this page replays it with the same board, counters, depth chart and log as the built-in solvers.</p>
+            <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a trace file, or drop one anywhere on the page">
+              <span id="drop-text">Choose a trace file, or drop one anywhere on this page</span>
+              <input type="file" id="trace-file" accept=".trace,.txt,text/plain" hidden>
+            </div>
+            <p class="err" id="trace-err" role="alert"></p>
+            <p class="hint" id="trace-info" role="status"></p>
+            <div class="mode-row">
+              <label class="label" for="trace-style">Telling rejections apart</label>
+              <select id="trace-style" aria-label="How rejections are told apart in a trace">
+                <option value="auto">Automatic</option>
+                <option value="tall">Tallest first: checked after every placement</option>
+                <option value="complete">Brute force: only finished rows and columns</option>
+                <option value="none">No guessing</option>
+              </select>
+            </div>
+            <p class="opt-note" id="trace-style-note"></p>
+            <div class="mode-row">
+              <span class="label">C helper</span>
+              <button class="btn" id="b-helper-h" type="button">skytrace.h</button>
+              <button class="btn" id="b-helper-c" type="button">skytrace.c</button>
+              <button class="btn" id="b-sample" type="button" title="A small trace to try the loader with">Sample trace</button>
+            </div>
+            <p class="hint">Add the two helper files to your project, then make four calls: <code>trace_start(game-&gt;size, game-&gt;clues)</code> once after parsing, <code>trace_place(row, col, num)</code> and <code>trace_remove(row, col)</code> inside the helpers that write and clear a cell, and <code>trace_end(solved)</code> after <code>solve()</code> returns. Run the program once and it writes <code>skyscraper.trace</code> next to it.</p>
+            <p class="hint">A placement taken out again at once is counted as a rejection, and every other removal as an undo preceded by a dead end. Runs longer than 2,000,000 events show their first part.</p>
+          </details>
+        </div>
+        <div class="tabpanel" role="tabpanel" id="panel-sim" aria-labelledby="tab-sim" hidden>
+          <div class="mode-row">
+            <span class="label">Solving options</span>
+      <div class="seg" role="radiogroup" aria-label="Solving options">
+        <input type="radio" name="order" id="o-row" value="row" checked><label for="o-row">Row by row</label>
+        <input type="radio" name="order" id="o-col" value="col"><label for="o-col">Column by column</label>
+        <input type="radio" name="order" id="o-brute" value="brute"><label for="o-brute">Brute force</label>
+        <input type="radio" name="order" id="o-trace" value="trace" disabled><label for="o-trace" id="o-trace-l" title="Load a trace from your own solver first">Your solver</label>
+      </div>
+          </div>
+          <p class="opt-note" id="opt-note"></p>
+          <div class="mode-row">
+            <button class="btn" id="b-compare" type="button" title="Run every option on these clues and compare the results">Compare all three</button>
+            <button class="btn" id="b-share" type="button" title="Copy a link that reopens this puzzle, solving option and current step" disabled>Copy link</button>
+          </div>
+          <p class="hint" id="share-note" role="status"></p>
+          <div class="controls">
+            <button class="btn" id="b-back" type="button">&larr; Back</button>
+            <button class="btn primary" id="b-step" type="button">Step &rarr;</button>
+            <button class="btn" id="b-play" type="button">Play</button>
+            <button class="btn" id="b-dead" type="button">Next dead end</button>
+            <button class="btn" id="b-solve" type="button">Solve</button>
+            <button class="btn" id="b-reset" type="button">Reset</button>
+            <button class="btn" id="b-save" type="button">Save log (.txt)</button>
+            <button class="btn" id="b-json" type="button" title="Counters, statistics and the breakdown as JSON">Stats (.json)</button>
+            <button class="btn" id="b-csv" type="button" title="The breakdown by number as CSV">Breakdown (.csv)</button>
+          </div>
+          <div class="speed">
+            <label class="label" for="speed">Play speed</label>
+            <input type="range" id="speed" min="0" max="10" value="5">
+            <output id="speed-out" for="speed"></output>
+          </div>
+          <div class="jump">
+            <label class="label" for="jump">Go to step</label>
+            <input type="text" id="jump" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="e.g. 1,000,000" aria-label="Step number to jump to">
+            <button class="btn" id="b-jump" type="button">Go</button>
+          </div>
+          <p class="hint" id="save-note" role="status"></p>
+          <p class="hint" id="hint">Keys: Right arrow steps, Left arrow goes back, Space plays or pauses.</p>
+          <ol class="log" id="log" aria-live="off" aria-label="Step log, oldest first" tabindex="0"></ol>
+        </div>
+        <div class="tabpanel" role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" hidden>
+          <span class="label">Statistics</span>
+          <dl class="stats">
+            <div class="st"><dt>Acceptance rate</dt><dd id="st-rate">&mdash;</dd><p>Accepted &divide; (accepted + rejected). A high rate means the clue check prunes little.</p></div>
+            <div class="st"><dt>Placements still standing</dt><dd id="st-stand">&mdash;</dd><p>Buildings on the board now, out of every placement ever accepted.</p></div>
+            <div class="st"><dt>Longest climb back</dt><dd id="st-climb">0</dd><p>Most placements undone in a row without a new acceptance.</p></div>
+            <div class="st" id="st-time-row"><dt>Solve time</dt><dd id="st-time">&mdash;</dd><p>Time spent in Solve and Next dead end, with the average speed. Play is paced by its slider, so it isn't timed.</p></div>
+          </dl>
+          <span class="label rules-h">Rejections by rule</span>
+          <dl class="stats" id="rules-list"></dl>
+          <p class="hint">Each rejection is counted once, for the first failing view in check order: row left, row right, column top, column bottom.</p>
+        </div>
+      <div class="tabpanel" role="tabpanel" id="panel-brk" aria-labelledby="tab-brk" hidden>
+        <div class="seg" role="radiogroup" aria-label="Breakdown view">
+          <input type="radio" name="brk" id="brk-num" value="num" checked><label for="brk-num">By number</label>
+          <input type="radio" name="brk" id="brk-depth" value="depth"><label for="brk-depth">By depth</label>
+        </div>
+        <div id="brk-v-num">
+        <div class="scroll">
+          <table>
+            <caption><span class="label" id="by-caption">Where the work goes, by number placed</span></caption>
+            <thead><tr><th id="by-h0">Number</th><th>Calls</th><th class="share">Share of calls</th><th>Accepted</th><th>Rejected</th><th>Accept rate</th><th>Dead ends</th></tr></thead>
+            <tbody id="by-body"></tbody>
+          </table>
+        </div>
+        </div>
+        <div id="brk-v-depth" hidden>
+        <p class="hint">Depth is how many buildings were standing when the solver tried a placement. Deep rows are only reached after the shallow ones survive, so a low accept rate at a shallow depth means the clues prune early.</p>
+        <div class="scroll depth-scroll">
+          <table>
+            <thead><tr><th>Depth</th><th id="dh-place">Placing</th><th>Reached</th><th class="share">Share of reached</th><th>Accepted</th><th>Rejected</th><th>Accept rate</th><th>Dead ends</th></tr></thead>
+            <tbody id="depth-body"></tbody>
+          </table>
+        </div>
+        </div>
+      </div>
+      <div class="tabpanel cmp-card" role="tabpanel" id="panel-cmp" aria-labelledby="tab-cmp" hidden>
+        <div class="cmp-head">
+          <span class="label" id="cmp-label">Row, column and brute force on the current clues</span>
+          <button class="btn" id="b-cmp-stop" type="button" hidden>Stop</button>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Option</th><th>Result</th><th>Steps</th><th>Accepted</th><th>Rejected</th><th>Time</th><th>vs fewest</th></tr></thead>
+            <tbody id="cmp-body"></tbody>
+          </table>
+        </div>
+        <p id="cmp-note">Press Compare all three in the Simulation tab to run the three options side by side on their own copies of the puzzle. The board is not affected.</p>
+      </div>
+      </section>
+
+    </div>
+  </div>
+
+  <footer class="site-foot">
+    <p><b>Privacy:</b> this page runs entirely in your browser. The puzzles and trace files you load are never uploaded, and nothing is tracked or sent anywhere. The only thing remembered is your theme choice, kept on your device.</p>
+    <p>&copy; 2026 <a href="https://github.com/melwongwk" target="_blank" rel="noopener">Melvin Wong</a>. Free to use and modify under the MIT License.</p>
+  </footer>
+
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/engine_wasm.js"></script>
+<script src="js/presets.js"></script>
+<script src="js/helper.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
