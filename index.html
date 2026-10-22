@@ -124,7 +124,6 @@ select { flex: 0 1 260px; font-size: 0.88rem; }
 .pick-row > * { min-width: 0; }
 .pick-row select { flex: 0 1 220px; }
 .mode-row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
-.mode-note { color: var(--muted); font-size: 0.85rem; }
 .opt-note { margin: 0; color: var(--muted); font-size: 0.85rem; max-width: 84ch; }
 @media (max-width: 480px) { .seg label { padding: 8px 9px; font-size: 0.8rem; } }
 
@@ -151,7 +150,7 @@ select { flex: 0 1 260px; font-size: 0.88rem; }
 /* One column on narrow screens: board, controls, counters, statistics. */
 @media (max-width: 639px) {
   .col { display: contents; }
-  .c-board { order: 1; } .c-controls { order: 2; } .c-counters { order: 3; } .c-stats { order: 4; }
+  .c-board { order: 1; } .c-controls { order: 2; } .c-counters { order: 3; }
 }
 .status { display: flex; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 10px; align-items: baseline; }
 .status strong { font-size: 1.02rem; }
@@ -320,6 +319,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
 .fmt-list .how { font-family: var(--font); font-weight: 400; color: var(--muted); font-size: 0.8rem; }
 .howto code { font-family: var(--mono); font-size: 0.82rem; background: var(--cell); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; overflow-wrap: anywhere; }
 .howto .btn { margin-top: 6px; }
+.howto a { color: var(--accent); }
 .tracebox { border: 1px solid var(--line); border-radius: 4px; background: var(--cell); padding: 8px 12px; }
 .tracebox > summary { cursor: pointer; font-weight: 600; padding: 4px 0; min-height: 28px; }
 .tracebox[open] > summary { margin-bottom: 6px; }
@@ -354,7 +354,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
     <details class="howto" id="howto">
       <summary>How to read this</summary>
       <h2>The board</h2>
-      <p>Each clue on the edge says how many buildings you can see looking along that row or column from that side. A taller building hides every shorter one behind it. Every row and column holds each height exactly once.</p>
+      <p>Each clue on the edge says how many buildings you can see looking along that row or column from that side. A taller building hides every shorter one behind it. Every row and column holds each height exactly once. New to skyscraper puzzles? You can <a href="https://www.brainbashers.com/skyscrapers.asp" target="_blank" rel="noopener noreferrer">try one on BrainBashers</a> first.</p>
       <h2>The counters</h2>
       <ul>
         <li><b>Accepted:</b> a building was placed and every clue can still be met.</li>
@@ -473,7 +473,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
             <summary>Use your own solver</summary>
             <p class="hint">Nothing of yours runs here. Your C solver writes a trace of every number it places and removes, and this page replays it with the same board, counters, depth chart and log as the built-in solvers.</p>
             <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a trace file, or drop one anywhere on the page">
-              <span id="drop-text">Choose a trace file, or drop one anywhere on this page</span>
+              <span>Choose a trace file, or drop one anywhere on this page</span>
               <input type="file" id="trace-file" accept=".trace,.txt,text/plain" hidden>
             </div>
             <p class="err" id="trace-err" role="alert"></p>
