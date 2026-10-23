@@ -9,7 +9,7 @@ solver. It is meant for learning how backtracking algorithms solve puzzles.
 
 ## Themes
 
-Auto (follows your system), Light, Dark, Color blind, Synthwave and Terminal.
+Auto (follows your system), Light, Dark, Color blind, Synthwave, Terminal and CMYK.
 Pick one from the Theme menu at the top of the page.
 
 ## Run it

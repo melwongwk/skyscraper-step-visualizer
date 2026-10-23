@@ -7,7 +7,7 @@
 <title>Skyscraper Step Visualizer</title>
 <meta name="description" content="Watch skyscraper puzzle solvers work, one step at a time. See each placement accepted, rejected or undone.">
 <meta name="theme-color" content="#1f5fbf">
-<script>try{var t=localStorage.getItem("sky-theme");if(/^(light|dark|colorblind|synthwave|terminal)$/.test(t))document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<script>try{var t=localStorage.getItem("sky-theme");if(/^(light|dark|colorblind|synthwave|terminal|cmyk)$/.test(t))document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <script>
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
 </script>
@@ -73,6 +73,11 @@
   color-scheme: dark;
   --font: var(--mono);
 }
+:root[data-theme="cmyk"] {
+  --bg: #0a0b0f; --panel: #12141b; --cell: #191c26; --ink: #f2f4f7; --muted: #a3acba; --line: #2b3040; --accent: #00c2f0; --ok: #19d3d9; --rej: #ff3d9a; --dead: #ffd21f; --undo: #8f8cff;
+  color-scheme: dark;
+}
+:root[data-theme="cmyk"] body { background-image: linear-gradient(90deg, #00c2f0 0 33.34%, #ff3d9a 33.34% 66.67%, #ffd21f 66.67%); background-size: 100% 4px; background-repeat: no-repeat; }
 :root[data-theme="synthwave"] body { background-image: radial-gradient(ellipse 80% 40% at 50% -5%, color-mix(in srgb, var(--accent) 20%, transparent), transparent); background-repeat: no-repeat; }
 :root[data-theme="synthwave"] h1 { text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
 :root[data-theme="synthwave"] .card { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent), 0 0 22px color-mix(in srgb, var(--accent) 9%, transparent); }
@@ -348,6 +353,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
           <option value="colorblind">Color blind</option>
           <option value="synthwave">Synthwave</option>
           <option value="terminal">Terminal</option>
+          <option value="cmyk">CMYK</option>
         </select>
       </div>
     </div>
