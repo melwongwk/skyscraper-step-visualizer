@@ -306,6 +306,9 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
 .howto { margin-top: 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); padding: 8px 12px; max-width: 78ch; }
 .howto > summary { cursor: pointer; font-weight: 600; padding: 4px 0; min-height: 28px; }
 .howto[open] > summary { margin-bottom: 4px; }
+.howto .tabs { margin: 0 -12px 8px; }
+.howto .tab { padding: 8px 12px; min-height: 40px; }
+.howto [role="tabpanel"][hidden] { display: none; }
 .howto h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 12px 0 2px; }
 .howto p, .howto li { font-size: 0.88rem; margin: 2px 0; }
 .howto ul, .howto ol { margin: 2px 0; padding-left: 1.2em; }
@@ -343,6 +346,18 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
 .gloss dt::after { content: ":"; }
 .gloss dd { display: inline; margin: 0 0 0 4px; font-size: 0.88rem; }
 .gloss > div { margin: 3px 0; }
+.keywrap { position: relative; display: inline-block; }
+.linkbtn { background: none; border: 0; padding: 4px 0; font: inherit; font-size: inherit; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.linkbtn kbd { text-decoration: none; display: inline-block; }
+.keypop { text-align: left; }
+.keypop { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 20; width: min(300px, 86vw); padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+.keypop[hidden] { display: none; }
+.keypop .hint { margin: 6px 0 0; font-size: 0.78rem; }
+.keys { margin: 0; }
+.keys > div { display: flex; gap: 10px; margin: 4px 0; align-items: baseline; }
+.keys dt { min-width: 7.5em; margin: 0; }
+.keys dd { margin: 0; font-size: 0.88rem; }
+kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--cell); color: var(--ink); }
 .xt { justify-self: start; font-size: 0.72rem; color: var(--muted); }
 .xt label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
 .xt input { margin: 0; accent-color: var(--accent); }
@@ -383,6 +398,12 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
     <p class="lede">Watch a solver place buildings, reject, back up and undo until every clue fits. Pick a solving option (row by row, column by column or brute force), or load a trace from your own solver. Any size from 1×1 to 9×9.</p>
     <details class="howto" id="howto">
       <summary>How to read this</summary>
+      <div class="tabs" role="tablist" aria-label="How to read this">
+        <button class="tab" type="button" role="tab" id="ht-basics" aria-controls="hp-basics" aria-selected="true">The basics</button>
+        <button class="tab" type="button" role="tab" id="ht-gloss" aria-controls="hp-gloss" aria-selected="false" tabindex="-1">Glossary</button>
+        <button class="tab" type="button" role="tab" id="ht-try" aria-controls="hp-try" aria-selected="false" tabindex="-1">Try it</button>
+      </div>
+      <div id="hp-basics" role="tabpanel" aria-labelledby="ht-basics">
       <h2>The board</h2>
       <p>Each clue on the edge says how many buildings you can see looking along that row or column from that side. A taller building hides every shorter one behind it. Every row and column holds each height exactly once. New to skyscraper puzzles? You can <a href="https://www.brainbashers.com/skyscrapers.asp" target="_blank" rel="noopener noreferrer">try one on BrainBashers</a> first.</p>
       <h2>The counters</h2>
@@ -391,7 +412,12 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
         <li><b>Rejected:</b> a placement broke a clue, so it was removed straight away and the solver tries the next option.</li>
         <li><b>Dead end:</b> nothing is left to try at this point, so the solver backs up and undoes the placement before it. This is <span class="term" tabindex="0" data-g="backtrack">backtracking</span>.</li>
       </ul>
-      <h2>Glossary</h2>
+      <div class="spoil">
+      <h2>Why the options differ</h2>
+      <p>Row by row and column by column place the tallest buildings first and check the clues after every placement, so a bad choice is caught early. Brute force fills cells one at a time and checks a clue only once its whole row or column is full, so it explores far more dead ends before noticing a mistake.</p>
+      </div>
+      </div>
+      <div id="hp-gloss" role="tabpanel" aria-labelledby="ht-gloss" hidden>
       <dl class="gloss">
         <div><dt>Accepted</dt><dd id="gl-accepted">A building was placed and nothing is wrong yet, so the solver keeps going.</dd></div>
         <div><dt>Rejected</dt><dd id="gl-rejected">A building was placed, but the solver spotted a problem and took it back at once.</dd></div>
@@ -400,16 +426,15 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
         <div><dt>Depth</dt><dd id="gl-depth">How many buildings are standing on the board right now. The deeper the search, the more are placed.</dd></div>
         <div class="spoil"><dt>Pruning</dt><dd id="gl-pruning">Giving up on a whole branch of the search early, because it cannot lead to a solution, instead of trying everything under it.</dd></div>
       </dl>
-      <div class="spoil">
-      <h2>Why the options differ</h2>
-      <p>Row by row and column by column place the tallest buildings first and check the clues after every placement, so a bad choice is caught early. Brute force fills cells one at a time and checks a clue only once its whole row or column is full, so it explores far more dead ends before noticing a mistake.</p>
       </div>
+      <div id="hp-try" role="tabpanel" aria-labelledby="ht-try" hidden>
       <h2>Try this</h2>
       <ol>
         <li>Pick a size and an example puzzle, open the Simulation tab and press Step a few times to follow the log.</li>
         <li>Press Solve, then look at the depth chart: it shows how far the solver climbed and fell back.</li>
         <li>Press Compare all three and see how many steps each option needed.</li>
       </ol>
+      </div>
     </details>
   </header>
 
@@ -557,9 +582,9 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
           </div>
           <p class="hint" id="share-note" role="status"></p>
           <div class="controls">
-            <button class="btn" id="b-back" type="button">&larr; Back</button>
-            <button class="btn primary" id="b-step" type="button">Step &rarr;</button>
-            <button class="btn" id="b-play" type="button">Play</button>
+            <button class="btn" id="b-back" type="button" aria-keyshortcuts="ArrowLeft">&larr; Back</button>
+            <button class="btn primary" id="b-step" type="button" aria-keyshortcuts="ArrowRight">Step &rarr;</button>
+            <button class="btn" id="b-play" type="button" aria-keyshortcuts="Space">Play</button>
             <button class="btn" id="b-dead" type="button">Next dead end</button>
             <button class="btn" id="b-solve" type="button">Solve</button>
             <button class="btn" id="b-reset" type="button">Reset</button>
@@ -590,7 +615,19 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
             <button class="btn" id="b-jump" type="button">Go</button>
           </div>
           <p class="hint" id="save-note" role="status"></p>
-          <p class="hint" id="hint">Keys: Right arrow steps, Left arrow goes back, Space plays or pauses.</p>
+          <div class="hint" id="hint"><span class="keywrap">
+              <button class="linkbtn" id="b-keys" type="button" aria-expanded="false" aria-controls="keys-pop" aria-keyshortcuts="?">Keyboard shortcuts <kbd>?</kbd></button>
+              <div class="keypop" id="keys-pop" role="dialog" aria-label="Keyboard shortcuts" hidden>
+<dl class="keys">
+  <div><dt><kbd>&rarr;</kbd></dt><dd>Step forward</dd></div>
+  <div><dt><kbd>&larr;</kbd></dt><dd>Step back</dd></div>
+  <div><dt><kbd>Space</kbd></dt><dd>Play or pause</dd></div>
+  <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Answer a prediction, when Predict each step is on</dd></div>
+  <div><dt><kbd>?</kbd></dt><dd>Show or hide this list</dd></div>
+</dl>
+<p class="hint">The keys pause while a button or a text box has focus, so press Tab until nothing is highlighted, or click on a blank part of the page.</p>
+              </div>
+            </span></div>
           <ol class="log" id="log" aria-live="off" aria-label="Step log, oldest first" tabindex="0"></ol>
         </div>
         <div class="tabpanel" role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" hidden>
