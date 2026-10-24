@@ -19,9 +19,17 @@ is nothing to install and no build step.
 
 ## Privacy
 
-Everything runs in your browser. The puzzles and trace files you load are never uploaded. The only thing remembered on your device is your theme choice.
+Everything runs in your browser. The puzzles and trace files you load are never
+uploaded. Only your theme and explanation settings are remembered on your device.
 
-The site is hosted on Vercel, which collects anonymous visit and page-speed statistics through its Web Analytics and Speed Insights: the pages viewed, referrer, country, browser, device type, operating system and load times. No cookies are used, and Vercel says the data is not tied to any individual or IP address. See Vercel's Web Analytics and Speed Insights privacy pages for details.
+The site is hosted on Vercel, which collects anonymous visit and page-speed
+statistics through its Web Analytics and Speed Insights: the pages viewed,
+referrer, country, browser, device type, operating system and load times. No
+cookies are used, and Vercel says the data is not tied to any individual or IP
+address. See Vercel's
+[Web Analytics](https://vercel.com/docs/analytics/privacy-policy) and
+[Speed Insights](https://vercel.com/docs/speed-insights/privacy-policy) privacy
+pages for details.
 
 ## License
 

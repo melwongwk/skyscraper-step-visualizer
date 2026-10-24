@@ -7,7 +7,7 @@
 <title>Skyscraper Step Visualizer</title>
 <meta name="description" content="Watch skyscraper puzzle solvers work, one step at a time. See each placement accepted, rejected or undone.">
 <meta name="theme-color" content="#1f5fbf">
-<script>try{var t=localStorage.getItem("sky-theme");if(/^(light|dark|colorblind|synthwave|terminal|cmyk)$/.test(t))document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<script>try{var t=localStorage.getItem("sky-theme");if(/^(light|dark|colorblind|synthwave|terminal|cmyk)$/.test(t))document.documentElement.setAttribute("data-theme",t);if(localStorage.getItem("sky-explain")==="1")document.documentElement.setAttribute("data-explain","on")}catch(e){}</script>
 <script>
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
 </script>
@@ -323,6 +323,29 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
 .fmt-list dt { font-weight: 600; }
 .fmt-list dd { margin: 0; font-family: var(--mono); font-weight: 700; }
 .fmt-list .how { font-family: var(--font); font-weight: 400; color: var(--muted); font-size: 0.8rem; }
+/* Explanations of how the built-in solvers decide stay hidden until the footer switch is on. */
+:root:not([data-explain="on"]) .spoil { display: none !important; }
+.predict { margin-top: 10px; }
+.pcheck { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+.pcheck input { margin: 0; accent-color: var(--accent); }
+.predict-q { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: 4px; background: var(--accent-soft); }
+.predict-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.predict-row kbd { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-left: 4px; }
+.predict .hint:empty { display: none; }
+/* Hover and focus notes for the glossary terms. Their text comes from the glossary in "How to read this". */
+.term { position: relative; border-bottom: 1px dotted currentColor; cursor: help; }
+.term::after { content: attr(data-tip); display: none; position: absolute; left: 0; top: calc(100% + 6px); z-index: 30; width: max-content; max-width: min(26ch, 72vw); padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--ink); color: var(--bg); font: 400 0.78rem/1.35 var(--font); letter-spacing: 0; text-transform: none; text-align: left; white-space: normal; pointer-events: none; }
+.term[data-r]::after { left: auto; right: 0; }
+.term:hover::after, .term:focus::after { display: block; }
+.term:focus-visible { outline-offset: 1px; }
+.gloss { margin: 4px 0; }
+.gloss dt { display: inline; font-weight: 600; font-size: 0.88rem; }
+.gloss dt::after { content: ":"; }
+.gloss dd { display: inline; margin: 0 0 0 4px; font-size: 0.88rem; }
+.gloss > div { margin: 3px 0; }
+.xt { justify-self: start; font-size: 0.72rem; color: var(--muted); }
+.xt label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.xt input { margin: 0; accent-color: var(--accent); }
 .howto code { font-family: var(--mono); font-size: 0.82rem; background: var(--cell); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; overflow-wrap: anywhere; }
 .howto .btn { margin-top: 6px; }
 .howto a { color: var(--accent); }
@@ -366,10 +389,21 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
       <ul>
         <li><b>Accepted:</b> a building was placed and every clue can still be met.</li>
         <li><b>Rejected:</b> a placement broke a clue, so it was removed straight away and the solver tries the next option.</li>
-        <li><b>Dead end:</b> nothing is left to try at this point, so the solver backs up and undoes the placement before it. This is backtracking.</li>
+        <li><b>Dead end:</b> nothing is left to try at this point, so the solver backs up and undoes the placement before it. This is <span class="term" tabindex="0" data-g="backtrack">backtracking</span>.</li>
       </ul>
+      <h2>Glossary</h2>
+      <dl class="gloss">
+        <div><dt>Accepted</dt><dd id="gl-accepted">A building was placed and nothing is wrong yet, so the solver keeps going.</dd></div>
+        <div><dt>Rejected</dt><dd id="gl-rejected">A building was placed, but the solver spotted a problem and took it back at once.</dd></div>
+        <div><dt>Dead end</dt><dd id="gl-dead">Nothing is left to try at this point, so the solver has to go back.</dd></div>
+        <div><dt>Backtrack</dt><dd id="gl-backtrack">Going back to an earlier choice, undoing it and trying something different.</dd></div>
+        <div><dt>Depth</dt><dd id="gl-depth">How many buildings are standing on the board right now. The deeper the search, the more are placed.</dd></div>
+        <div class="spoil"><dt>Pruning</dt><dd id="gl-pruning">Giving up on a whole branch of the search early, because it cannot lead to a solution, instead of trying everything under it.</dd></div>
+      </dl>
+      <div class="spoil">
       <h2>Why the options differ</h2>
       <p>Row by row and column by column place the tallest buildings first and check the clues after every placement, so a bad choice is caught early. Brute force fills cells one at a time and checks a clue only once its whole row or column is full, so it explores far more dead ends before noticing a mistake.</p>
+      </div>
       <h2>Try this</h2>
       <ol>
         <li>Pick a size and an example puzzle, open the Simulation tab and press Step a few times to follow the log.</li>
@@ -391,18 +425,18 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
       <div class="board" id="board" role="img" aria-label="Skyscraper grid with clues"></div>
       <div class="why" id="why" aria-live="off"></div>
       <div class="trace">
-        <div class="trace-head"><span class="label">Depth over time</span><span class="note" id="trace-note"></span></div>
+        <div class="trace-head"><span class="label"><span class="term" tabindex="0" data-g="depth">Depth</span> over time</span><span class="note" id="trace-note"></span></div>
         <svg id="trace" viewBox="0 0 600 72" preserveAspectRatio="none" role="img" aria-label="Chart of how many buildings were standing at each step"></svg>
         <div class="trace-axis"><span>step 0</span><span id="trace-key"></span><span id="trace-end"></span></div>
       </div>
-      <p class="board-note">Clues sit on the edge they are read from. A clue gets a ✓ and a tint when its view is locked in, and a ✕ when the last placement broke it. Darker cells hold taller buildings. After a rejection, the dark-ringed numbers show what the failing clue counted.</p>
+      <p class="board-note">Clues sit on the edge they are read from. A clue gets a ✓ and a tint when its view is locked in, and a ✕ when the last placement broke it. Darker cells hold taller buildings.<span class="spoil"> After a rejection, the dark-ringed numbers show what the failing clue counted.</span></p>
     </section>
 
       <section class="card c-counters" aria-label="Counters">
         <div class="tiles">
-          <div class="tile ok"><div class="t-label"><span aria-hidden="true">&#10003;</span>Accepted</div><div class="t-num" id="c-acc">0</div><div class="t-sub" id="ts-acc">Placed, and every clue is still reachable.</div></div>
-          <div class="tile rej"><div class="t-label"><span aria-hidden="true">&#10005;</span>Rejected</div><div class="t-num" id="c-rej">0</div><div class="t-sub" id="ts-rej">Placed, failed the clue check, removed at once.</div></div>
-          <div class="tile dead"><div class="t-label"><span aria-hidden="true">&#8856;</span>Dead ends</div><div class="t-num" id="c-dead">0</div><div class="t-sub" id="ts-dead">No free cell left for the number being placed. Each one makes the solver undo the placement before it.</div></div>
+          <div class="tile ok"><div class="t-label"><span aria-hidden="true">&#10003;</span><span class="term" tabindex="0" data-g="accepted">Accepted</span></div><div class="t-num" id="c-acc">0</div><div class="t-sub" id="ts-acc">Placed, and kept for now.</div></div>
+          <div class="tile rej"><div class="t-label"><span aria-hidden="true">&#10005;</span><span class="term" tabindex="0" data-g="rejected">Rejected</span></div><div class="t-num" id="c-rej">0</div><div class="t-sub" id="ts-rej">Placed, then removed at once.</div></div>
+          <div class="tile dead"><div class="t-label"><span aria-hidden="true">&#8856;</span><span class="term" tabindex="0" data-g="dead">Dead ends</span></div><div class="t-num" id="c-dead">0</div><div class="t-sub" id="ts-dead">Nothing left to try here. Each one makes the solver undo the placement before it.</div></div>
         </div>
         <div class="minis">
           <div class="mini"><span class="label">Steps</span><b id="c-steps">0</b></div>
@@ -413,6 +447,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
           <span class="label">Buildings standing</span>
           <div class="depth-bar"><i id="depth-fill"></i></div>
           <div class="depth-text" id="depth-text"></div>
+          <div class="depth-text" id="space-text" title="Grids where every row and column holds each height once. The clues narrow these down to the answer."></div>
         </div>
       </section>
 
@@ -485,7 +520,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
             </div>
             <p class="err" id="trace-err" role="alert"></p>
             <p class="hint" id="trace-info" role="status"></p>
-            <div class="mode-row">
+            <div class="mode-row spoil">
               <label class="label" for="trace-style">Telling rejections apart</label>
               <select id="trace-style" aria-label="How rejections are told apart in a trace">
                 <option value="auto">Automatic</option>
@@ -494,7 +529,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
                 <option value="none">No guessing</option>
               </select>
             </div>
-            <p class="opt-note" id="trace-style-note"></p>
+            <p class="opt-note spoil" id="trace-style-note"></p>
             <div class="mode-row">
               <span class="label">C helper</span>
               <button class="btn" id="b-helper-h" type="button">skytrace.h</button>
@@ -532,6 +567,18 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
             <button class="btn" id="b-json" type="button" title="Counters, statistics and the breakdown as JSON">Stats (.json)</button>
             <button class="btn" id="b-csv" type="button" title="The breakdown by number as CSV">Breakdown (.csv)</button>
           </div>
+          <div class="predict">
+            <label class="pcheck"><input type="checkbox" id="practice"> Predict each step</label>
+            <div class="predict-q" id="predict-q" hidden>
+              <span class="label">What happens on the next step?</span>
+              <div class="predict-row" role="group" aria-label="Your prediction">
+                <button class="btn" type="button" data-g="1">&#10003; Accepted <kbd>1</kbd></button>
+                <button class="btn" type="button" data-g="2">&#10005; Rejected <kbd>2</kbd></button>
+                <button class="btn" type="button" data-g="3">&#8856; Dead end <kbd>3</kbd></button>
+              </div>
+            </div>
+            <p class="hint" id="predict-msg" role="status" aria-live="polite"></p>
+          </div>
           <div class="speed">
             <label class="label" for="speed">Play speed</label>
             <input type="range" id="speed" min="0" max="10" value="5">
@@ -549,14 +596,16 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
         <div class="tabpanel" role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" hidden>
           <span class="label">Statistics</span>
           <dl class="stats">
-            <div class="st"><dt>Acceptance rate</dt><dd id="st-rate">&mdash;</dd><p>Accepted &divide; (accepted + rejected). A high rate means the clue check prunes little.</p></div>
+            <div class="st"><dt>Acceptance rate</dt><dd id="st-rate">&mdash;</dd><p>Accepted &divide; (accepted + rejected).<span class="spoil"> A high rate means the clue check <span class="term" data-r tabindex="0" data-g="pruning">prunes</span> little.</span></p></div>
             <div class="st"><dt>Placements still standing</dt><dd id="st-stand">&mdash;</dd><p>Buildings on the board now, out of every placement ever accepted.</p></div>
             <div class="st"><dt>Longest climb back</dt><dd id="st-climb">0</dd><p>Most placements undone in a row without a new acceptance.</p></div>
             <div class="st" id="st-time-row"><dt>Solve time</dt><dd id="st-time">&mdash;</dd><p>Time spent in Solve and Next dead end, with the average speed. Play is paced by its slider, so it isn't timed.</p></div>
           </dl>
-          <span class="label rules-h">Rejections by rule</span>
-          <dl class="stats" id="rules-list"></dl>
-          <p class="hint">Each rejection is counted once, for the first failing view in check order: row left, row right, column top, column bottom.</p>
+          <div class="spoil">
+            <span class="label rules-h">Rejections by rule</span>
+            <dl class="stats" id="rules-list"></dl>
+            <p class="hint">Each rejection is counted once, for the first failing view in check order: row left, row right, column top, column bottom.</p>
+          </div>
         </div>
       <div class="tabpanel" role="tabpanel" id="panel-brk" aria-labelledby="tab-brk" hidden>
         <div class="seg" role="radiogroup" aria-label="Breakdown view">
@@ -576,7 +625,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
         <p class="hint">Depth is how many buildings were standing when the solver tried a placement. Deep rows are only reached after the shallow ones survive, so a low accept rate at a shallow depth means the clues prune early.</p>
         <div class="scroll depth-scroll">
           <table>
-            <thead><tr><th>Depth</th><th id="dh-place">Placing</th><th>Reached</th><th class="share">Share of reached</th><th>Accepted</th><th>Rejected</th><th>Accept rate</th><th>Dead ends</th></tr></thead>
+            <thead><tr><th>Depth</th><th class="spoil" id="dh-place">Placing</th><th>Reached</th><th class="share">Share of reached</th><th>Accepted</th><th>Rejected</th><th>Accept rate</th><th>Dead ends</th></tr></thead>
             <tbody id="depth-body"></tbody>
           </table>
         </div>
@@ -589,7 +638,7 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
         </div>
         <div class="scroll">
           <table>
-            <thead><tr><th>Option</th><th>Result</th><th>Steps</th><th>Accepted</th><th>Rejected</th><th>Time</th><th>vs fewest</th></tr></thead>
+            <thead><tr><th>Option</th><th>Result</th><th>Steps</th><th>Accepted</th><th>Rejected</th><th>Time</th><th class="spoil">vs fewest</th></tr></thead>
             <tbody id="cmp-body"></tbody>
           </table>
         </div>
@@ -601,8 +650,9 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
   </div>
 
   <footer class="site-foot">
-    <p><b>Privacy:</b> this page runs entirely in your browser. The puzzles and trace files you load are never uploaded. This site’s host, Vercel, collects anonymous visit and page-speed statistics: the pages viewed, referrer, country, browser, device type, operating system and load times. It uses no cookies, and Vercel says the data is not tied to any individual or IP address. The only thing remembered on your device is your theme choice.</p>
+    <p><b>Privacy:</b> this page runs entirely in your browser. The puzzles and trace files you load are never uploaded. This site’s host, Vercel, collects anonymous visit and page-speed statistics: the pages viewed, referrer, country, browser, device type, operating system and load times. It uses no cookies, and Vercel says the data is not tied to any individual or IP address. Only your theme and explanation settings are remembered on your device.</p>
     <p>&copy; 2026 <a href="https://github.com/melwongwk" target="_blank" rel="noopener">Melvin Wong</a>. Free to use and modify under the MIT License.</p>
+    <p class="xt"><label><input type="checkbox" id="explain"> Explanations</label></p>
   </footer>
 
 </div>
