@@ -4,9 +4,10 @@
 <meta name="google-site-verification" content="6zjuIC_02HiaYf4Jje_p53rBa6AUoKTfOw37IeIV5Ig" />
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Skyscraper Step Visualizer</title>
-<meta name="description" content="Watch skyscraper puzzle solvers work, one step at a time. See each placement accepted, rejected or undone.">
+<title>Skyscraper Puzzle Step Visualizer: Backtracking</title>
+<meta name="description" content="Watch a backtracking solver work through a skyscraper puzzle one step at a time. See each placement accepted, rejected or undone.">
 <meta name="theme-color" content="#1f5fbf">
+<link rel="canonical" href="https://skyscraper-step-visualizer.vercel.app/">
 <script>try{var t=localStorage.getItem("sky-theme");if(/^(light|dark|colorblind|synthwave|terminal|cmyk)$/.test(t))document.documentElement.setAttribute("data-theme",t);if(localStorage.getItem("sky-explain")==="1")document.documentElement.setAttribute("data-explain","on")}catch(e){}</script>
 <script>
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
@@ -17,8 +18,9 @@
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 <meta property="og:type" content="website">
-<meta property="og:title" content="Skyscraper Step Visualizer">
-<meta property="og:description" content="Watch skyscraper puzzle solvers work, one step at a time. See each placement accepted, rejected or undone.">
+<meta property="og:url" content="https://skyscraper-step-visualizer.vercel.app/">
+<meta property="og:title" content="Skyscraper Puzzle Step Visualizer: Backtracking">
+<meta property="og:description" content="Watch a backtracking solver work through a skyscraper puzzle one step at a time. See each placement accepted, rejected or undone.">
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f5fbf'/%3E%3Crect x='5' y='17' width='5' height='10' fill='%23fff'/%3E%3Crect x='11.5' y='10' width='5' height='17' fill='%23fff'/%3E%3Crect x='18' y='14' width='5' height='13' fill='%23fff'/%3E%3Crect x='24' y='6' width='3' height='21' fill='%23fff'/%3E%3C/svg%3E">
 <style>
@@ -396,6 +398,7 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
       </div>
     </div>
     <p class="lede">Watch a solver place buildings, reject, back up and undo until every clue fits. Pick a solving option (row by row, column by column or brute force), or load a trace from your own solver. Any size from 1×1 to 9×9.</p>
+    <p class="lede about">A skyscraper puzzle is a logic grid: place a building of every height in each row and column so the clues around the edge, which say how many buildings are visible from that side, all hold. This tool shows how a backtracking search works through such a puzzle, one placement at a time, with counters, a depth chart and a step log to follow along.</p>
     <details class="howto" id="howto">
       <summary>How to read this</summary>
       <div class="tabs" role="tablist" aria-label="How to read this">
