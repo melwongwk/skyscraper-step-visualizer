@@ -397,7 +397,7 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
         </select>
       </div>
     </div>
-    <p class="lede">Watch a solver place buildings, reject, back up and undo until every clue fits. Pick a solving option (row by row, column by column or brute force), or load a trace from your own solver. Any size from 1×1 to 9×9.</p>
+    <p class="lede">Watch a solver place buildings, reject, back up and undo until every clue fits. Pick a solving option, or load a trace from your own solver. Any size from 1×1 to 9×9.</p>
     <p class="lede about">A skyscraper puzzle is a logic grid: place a building of every height in each row and column so the clues around the edge, which say how many buildings are visible from that side, all hold. This tool shows how a backtracking search works through such a puzzle, one placement at a time, with counters, a depth chart and a step log to follow along.</p>
     <details class="howto" id="howto">
       <summary>How to read this</summary>
@@ -417,7 +417,7 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
       </ul>
       <div class="spoil">
       <h2>Why the options differ</h2>
-      <p>Row by row and column by column place the tallest buildings first and check the clues after every placement, so a bad choice is caught early. Brute force fills cells one at a time and checks a clue only once its whole row or column is full, so it explores far more dead ends before noticing a mistake.</p>
+      <p>Row by row and column by column place the tallest buildings first and check the clues after every placement, so a bad choice is caught early. Brute force fills cells one at a time and checks a clue only once its whole row or column is full, so it explores far more dead ends before noticing a mistake. Forward checking fills cells in the same order as brute force, but each placement also crosses its number off the empty cells in its row and column, and is rejected at once if one of them is left with nothing to try. Fewest options first drops the fixed order: it always fills the empty cell that has the fewest numbers left to try. Propagation uses the clues to rule out numbers before the search starts, makes every move the remaining numbers force, and only guesses when nothing is forced, so it needs far fewer guesses to go wrong.</p>
       </div>
       </div>
       <div id="hp-gloss" role="tabpanel" aria-labelledby="ht-gloss" hidden>
@@ -435,7 +435,7 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
       <ol>
         <li>Pick a size and an example puzzle, open the Simulation tab and press Step a few times to follow the log.</li>
         <li>Press Solve, then look at the depth chart: it shows how far the solver climbed and fell back.</li>
-        <li>Press Compare all three and see how many steps each option needed.</li>
+        <li>Press Compare all options and see how many steps each option needed.</li>
       </ol>
       </div>
     </details>
@@ -572,15 +572,24 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
           <div class="mode-row">
             <span class="label">Solving options</span>
       <div class="seg" role="radiogroup" aria-label="Solving options">
-        <input type="radio" name="order" id="o-row" value="row" checked><label for="o-row">Row by row</label>
-        <input type="radio" name="order" id="o-col" value="col"><label for="o-col">Column by column</label>
-        <input type="radio" name="order" id="o-brute" value="brute"><label for="o-brute">Brute force</label>
-        <input type="radio" name="order" id="o-trace" value="trace" disabled><label for="o-trace" id="o-trace-l" title="Load a trace from your own solver first">Your solver</label>
+        <input type="radio" name="family" id="f-tall" value="tall" checked><label for="f-tall">Tallest first</label>
+        <input type="radio" name="family" id="f-brute" value="brute"><label for="f-brute">Brute force</label>
+        <input type="radio" name="family" id="f-fc" value="fc"><label for="f-fc">Forward checking</label>
+        <input type="radio" name="family" id="f-mrv" value="mrv"><label for="f-mrv">Fewest options first</label>
+        <input type="radio" name="family" id="f-pb" value="pb"><label for="f-pb">Propagation</label>
+        <input type="radio" name="family" id="f-trace" value="trace" disabled><label for="f-trace" id="f-trace-l" title="Load a trace from your own solver first">Your solver</label>
       </div>
+          </div>
+          <div class="mode-row" id="dir-row">
+            <span class="label">Tallest first goes</span>
+            <div class="seg" role="radiogroup" aria-label="Tallest first order">
+              <input type="radio" name="dir" id="d-row" value="row" checked><label for="d-row">Row by row</label>
+              <input type="radio" name="dir" id="d-col" value="col"><label for="d-col">Column by column</label>
+            </div>
           </div>
           <p class="opt-note" id="opt-note"></p>
           <div class="mode-row">
-            <button class="btn" id="b-compare" type="button" title="Run every option on these clues and compare the results">Compare all three</button>
+            <button class="btn" id="b-compare" type="button" title="Run every option on these clues and compare the results">Compare all options</button>
             <button class="btn" id="b-share" type="button" title="Copy a link that reopens this puzzle, solving option and current step" disabled>Copy link</button>
           </div>
           <p class="hint" id="share-note" role="status"></p>
@@ -639,6 +648,7 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
             <div class="st"><dt>Acceptance rate</dt><dd id="st-rate">&mdash;</dd><p>Accepted &divide; (accepted + rejected).<span class="spoil"> A high rate means the clue check <span class="term" data-r tabindex="0" data-g="pruning">prunes</span> little.</span></p></div>
             <div class="st"><dt>Placements still standing</dt><dd id="st-stand">&mdash;</dd><p>Buildings on the board now, out of every placement ever accepted.</p></div>
             <div class="st"><dt>Longest climb back</dt><dd id="st-climb">0</dd><p>Most placements undone in a row without a new acceptance.</p></div>
+            <div class="st" id="st-forced-row" hidden><dt>Forced moves and guesses</dt><dd id="st-forced">&mdash;</dd><p>Placements the numbers left in the cells forced, and placements that were guesses. Includes the ones later undone.</p></div>
             <div class="st" id="st-time-row"><dt>Solve time</dt><dd id="st-time">&mdash;</dd><p>Time spent in Solve and Next dead end, with the average speed. Play is paced by its slider, so it isn't timed.</p></div>
           </dl>
           <div class="spoil">
@@ -673,7 +683,7 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
       </div>
       <div class="tabpanel cmp-card" role="tabpanel" id="panel-cmp" aria-labelledby="tab-cmp" hidden>
         <div class="cmp-head">
-          <span class="label" id="cmp-label">Row, column and brute force on the current clues</span>
+          <span class="label" id="cmp-label">Every option on the current clues</span>
           <button class="btn" id="b-cmp-stop" type="button" hidden>Stop</button>
         </div>
         <div class="scroll">
@@ -682,7 +692,7 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
             <tbody id="cmp-body"></tbody>
           </table>
         </div>
-        <p id="cmp-note">Press Compare all three in the Simulation tab to run the three options side by side on their own copies of the puzzle. The board is not affected.</p>
+        <p id="cmp-note">Press Compare all options in the Simulation tab to run the options side by side on their own copies of the puzzle. The board is not affected.</p>
       </div>
       </section>
 
