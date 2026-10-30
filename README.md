@@ -1,9 +1,9 @@
 # Skyscraper Step Visualizer
 
 Watch skyscraper puzzle solvers work, one step at a time. The visualizer shows
-every placement being accepted, rejected or undone, compares row-by-row,
-column-by-column and brute-force search, and can replay a trace from your own C
-solver. It is meant for learning how backtracking algorithms solve puzzles.
+every placement being accepted, rejected or undone, compares all solving options,
+and can replay a trace from your own C solver.
+It is meant for learning how backtracking algorithms solve puzzles.
 
 **Live site:** [Skyscraper Step Visualizer](https://skyscraper-step-visualizer.vercel.app/)
 
