@@ -1,36 +1,37 @@
-# Skyscraper Step Visualizer
+# Skyscraper Step Visualizer: trace replay
 
-Watch skyscraper puzzle solvers work, one step at a time. The visualizer shows
-every placement being accepted, rejected or undone, compares row-by-row,
-column-by-column and brute-force search, and can replay a trace from your own C
-solver. It is meant for learning how backtracking algorithms solve puzzles.
+A step-by-step viewer for skyscraper puzzle solvers, for learning how
+backtracking works. It contains no solver. You write a trace from your own C
+program, load it here, and the page replays every placement and removal with a
+board, counters, a depth chart and a step log.
+Everything runs in the browser; there is no server and no build step.
 
-**Live site:** [Skyscraper Step Visualizer](https://skyscraper-step-visualizer.vercel.app/)
+## How to use it
 
-## Themes
+1. Download `skytrace.h` and `skytrace.c` from the Puzzle tab (Use your own solver).
+2. Add them to your project and call `trace_start`, `trace_place`, `trace_remove`
+   and `trace_end` from your solver.
+3. Run your solver. It writes a `skyscraper.trace` file.
+4. Choose that file on the page, or drop it anywhere on the page.
+5. When you are done testing, delete `skytrace.c`, `skytrace.h`, the `#include`
+   and every `trace_` call from your project before you submit it.
 
-Auto (follows your system), Light, Dark, Color blind, Synthwave, Terminal and CMYK.
-Pick one from the Theme menu at the top of the page.
+Press Load sample trace to try the page without a solver. The Puzzle tab can
+also make a random puzzle and show its clues in one line to copy.
 
-## Run it
+## Files
 
-Open `index.html` in a browser, or serve this folder with any static host. There
-is nothing to install and no build step.
+| File | What it is |
+| --- | --- |
+| `index.html` | The page, with its styles |
+| `js/app.js` | The page's code |
+| `js/engine.js` | Reads a trace file and replays it |
+| `js/helper.js` | The two C helper files offered for download |
+| `js/sample.js`, `sample-5x5-partial.trace` | The sample trace |
 
-## Privacy
-
-Everything runs in your browser. The puzzles and trace files you load are never
-uploaded. Only your theme and explanation settings are remembered on your device.
-
-The site is hosted on Vercel, which collects anonymous visit and page-speed
-statistics through its Web Analytics and Speed Insights: the pages viewed,
-referrer, country, browser, device type, operating system and load times. No
-cookies are used, and Vercel says the data is not tied to any individual or IP
-address. See Vercel's
-[Web Analytics](https://vercel.com/docs/analytics/privacy-policy) and
-[Speed Insights](https://vercel.com/docs/speed-insights/privacy-policy) privacy
-pages for details.
+Open `index.html` in a browser to run it locally, or upload the folder to any
+static host.
 
 ## License
 
-MIT License, copyright (c) 2026 Melvin Wong. See `LICENSE`.
+MIT. See `LICENSE`.

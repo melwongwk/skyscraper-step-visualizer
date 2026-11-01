@@ -1,1 +1,316 @@
-!function(){function e(r,n,t){var o,u=[];if("trace"===r){var a,l="tall"===t;if(l){for(o=n;o>=1;o--)u.push(o);a=e("row",n).ruleInfo}else{for(o=1;o<=n;o++)u.push(o);a="complete"===t?e("brute",n).ruleInfo:[{name:"Removed straight after placing",desc:"Your solver placed a building and took it out again at once."}]}return{kind:"trace",group:l?{header:"Number",caption:"Where the work goes, by number placed (from your trace)",keys:u,prefix:""}:{header:"Row",caption:"Where the work goes, by row of the placement depth (from your trace)",keys:u,prefix:"Row "},ruleInfo:a}}if("brute"===r||"fc"===r||"mrv"===r||"pb"===r){for(o=1;o<=n;o++)u.push(o);var s=[{name:"Finished line shows too few",desc:"A completed row or column shows fewer buildings than its clue."},{name:"Finished line shows too many",desc:"A completed row or column shows more buildings than its clue."}];return"fc"!==r&&"pb"!==r||s.push({name:"A cell is left with nothing to try",desc:"After the placement, an empty cell in the same row or column can take no number at all."}),{kind:"brute",group:{header:"Row",caption:"mrv"===r||"pb"===r?"Where the work goes, by row of the cell being filled":"Where the work goes, by row being filled",keys:u,prefix:"Row "},ruleInfo:s}}for(o=n;o>=1;o--)u.push(o);return{kind:"smart",group:{header:"Number",caption:"Where the work goes, by number placed",keys:u,prefix:""},ruleInfo:[{name:"Too few can ever show",desc:"Visible now plus empty edge cells is less than the clue."},{name:"Clue met, edge still open",desc:"Visible equals the clue, but an empty edge cell would add one more."}]}}var r=2e6;function n(e,r,n,t){var o=e*e,u=new Int8Array(o),a=n.K,l=n.R,s=n.C,i=n.V,c=n.count,f=0,d=0,h=0,v=new Float64Array(e+1),m=new Float64Array(e+1),p=new Float64Array(e+1),b=new Float64Array(e+1),g=new Float64Array(e+1),y=new Float64Array(3),w=0,A=0,k=0,x=0,I=0,T=0,F=0,z=0,_=0,C=1,E=!1,R="running",M=0,S=0,j=0,W=0,U=null,$=0;function K(r){var n=r/e|0;return n>=e&&(n=e-1),"tall"===t?e-n:n+1}v[K(0)]=1;var L=600,V=new Int16Array(L),N=new Int16Array(L),Y=new Float64Array(L),D=0,P=1,B=0,q=32767,G=-1,O=0,X=new Float64Array(o+1),H=new Float64Array(o+1),J=new Float64Array(o+1),Q=new Float64Array(o+1),Z=0,ee=0,re=0;function ne(){if(V[D]=q,N[D]=G,Y[D]=O,D++,B=0,q=32767,G=-1,O=0,D===L){for(var e=0;e<300;e++)V[e]=Math.min(V[2*e],V[2*e+1]),N[e]=Math.max(N[2*e],N[2*e+1]),Y[e]=Y[2*e]+Y[2*e+1];D=300,P*=2}}function te(r,n,t){return n?t?e+r:r:t?3*e+r:2*e+r}function oe(e,r,n){return r?"column "+(e+1)+" from the "+(n?"bottom":"top"):"row "+(e+1)+" from the "+(n?"right":"left")}function ue(n,t,o){var a=t?e:1,l=t?n:n*e,s=a;o&&(l+=(e-1)*a,s=-a);for(var i=0,c=0,f=-1,d=!0,h=0;h<e;h++,l+=s){var v=u[l];0===v?d=!1:(f<0&&(f=h),v>i&&(i=v,c++))}return f<0&&(f=e),{clue:r[te(n,t,o)],vis:c,gap:f,filled:d}}function ae(e,r,n){var t=ue(e,r,n);return t.vis+t.gap<t.clue?1:t.vis===t.clue&&0!==t.gap?2:0}function le(e,r,n){var t=ue(e,r,n);return t.vis===t.clue?0:t.vis<t.clue?1:2}function se(e,r){return ue(e,r,0).filled}function ie(e,r,n,t){M=e,S=r,j=n,W=t}function ce(e,r){z++,b[K(k)]++,J[k]++,ie(3,e,r,0),U=null,$=0,d=4}function fe(r){return E||5!==d?function(r){if(E)return 0;var M,S,j,W;if(0===d&&f>=c)return 2===n.end&&0===k?(I++,z++,b[K(0)]++,J[0]++,ie(3,0,0,0),U=null,$=0,E=!0,R="nosolution",3):(E=!0,R=1===n.end&&n.standing===o?"solved":"cut",0);if(I++,U=null,$=0,4===d)return d=0,M=l[h],S=s[h],j=u[W=M*e+S],u[W]=0,k--,_++,g[K(k)]++,++w>A&&(A=w,ee=Z,re=I),ie(4,M,S,j),4;if(2===a[f])return h=f,f++,ce(l[h],s[h]),3;M=l[f],S=s[f],j=i[f],W=M*e+S;var L=f+1<c&&2===a[f+1]&&l[f+1]===M&&s[f+1]===S;u[W]=j;var V="complete"===t||L?function(e,r){if("tall"===t)return ae(e,!1,0)||ae(e,!1,1)||ae(r,!0,0)||ae(r,!0,1);if("complete"===t){var n=0,o=0;return se(e,!1)&&(n|=1,o=le(e,!1,0)||le(e,!1,1)),!o&&se(r,!0)&&(n|=2,o=le(r,!0,0)||le(r,!0,1)),$=n,o}return 1}(M,S):0;return L&&!V&&k+1===o&&(V=1),L&&V?(F++,p[K(k)]++,y["none"===t?1:V]++,H[k]++,r&&(U=function(e,r){var n,o,u,a,l=[];if("tall"===t){var s=[[e,!1,0],[e,!1,1],[r,!0,0],[r,!0,1]];for(n=0;n<4;n++)0!==ae((o=s[n])[0],o[1],o[2])&&(a=(u=ue(o[0],o[1],o[2])).vis+u.gap<u.clue?"at most "+(u.vis+u.gap)+" can ever be visible, clue is "+u.clue:"clue "+u.clue+" is already met, but an empty edge cell would add one more",l.push({name:oe(o[0],o[1],o[2]),why:a,clueIdx:te(o[0],o[1],o[2])}))}else if("complete"===t){var i=[];for(se(e,!1)&&i.push([e,!1,0],[e,!1,1]),se(r,!0)&&i.push([r,!0,0],[r,!0,1]),n=0;n<i.length;n++)(u=ue((o=i[n])[0],o[1],o[2])).vis!==u.clue&&l.push({name:oe(o[0],o[1],o[2]),why:"shows "+u.vis+", clue is "+u.clue,clueIdx:te(o[0],o[1],o[2])})}return l}(M,S)),u[W]=0,f+=2,ie(2,M,S,j),2):(T++,m[K(k)]++,X[k]++,w=0,Z=I,ie(1,M,S,j),L?(h=f+1,f+=2,d=5):f++,k+1===o?(E=!0,R="solved",1):(++k>x&&(x=k),Q[k]++,C++,v[K(k)]++,1))}(r):(I++,d=0,U=null,$=0,ce(S,j),3)}return Q[0]=1,{n:e,order:"trace",style:t,grid:u,step:function(e){return function(e){var r=fe(e);return r&&(k<q&&(q=k),k>G&&(G=k),O+=k,++B===P&&ne()),r}(!!e)},run:function(e,r){for(var n=0;n<e&&!E;){for(var t=Math.min(P-B,e-n),o=q,u=G,a=O,l=0,s=!1;l<t&&!E;){var i=fe(!1);if(i&&(l++,k<o&&(o=k),k>u&&(u=k),a+=k,3===i&&r)){s=!0;break}}if(q=o,G=u,O=a,n+=l,(B+=l)===P&&ne(),s)return!0;if(0===l)break}return!1},trace:function(){return{size:P,n:D,min:V,max:N,sum:Y,curMin:q,curMax:G,curSum:O,curCnt:B,steps:I,bestStart:ee,bestEnd:re,bestLen:A,total:o}},viewInfo:function(e,r,n){var o=ue(e,r,n);return"tall"===t?{clue:o.clue,vis:o.vis,gap:o.gap}:{clue:o.clue,vis:o.vis,gap:o.filled?0:1}},clueIndex:te,info:function(){return{events:c,used:f,end:n.end,truncated:n.truncated}},stats:function(){return{n:e,d:k,maxD:x,steps:I,accepted:T,rejected:F,deadEnds:z,undone:_,calls:C,done:E,status:R,pendingUndo:4===d||5===d,last:{type:M,r:S,c:j,num:W,bad:U,checked:$},by:{calls:v,acc:m,rej:p,dead:b,undo:g,dcalls:Q,dacc:X,drej:H,ddead:J},rules:y,longestClimb:A,num:0,line:0,cell:{r:0,c:0}}}}}var t=null;function o(e,r,n){var u=t,a=e*e,l="brute"===n||"fc"===n||"mrv"===n||"pb"===n,s="fc"===n,i="pb"===n,c=u.eng_new(e,"row"===n?0:"col"===n?1:"brute"===n?2:"fc"===n?3:"mrv"===n?4:5);if(c<0)return null;for(var f=u.memory.buffer,d=0;d<r.length;d++)u.eng_set_clue(c,d,r[d]);i&&u.eng_start(c);var h=new Float64Array(f,u.eng_block(c,0),32),v=new Float64Array(f,u.eng_block(c,1),50),m=new Float64Array(f,u.eng_block(c,2),s||i?4:3),p=new Float64Array(f,u.eng_block(c,3),328),b=new Int8Array(f,u.eng_block(c,4),a),g=new Int16Array(f,u.eng_block(c,5),600),y=new Int16Array(f,u.eng_block(c,6),600),w=new Float64Array(f,u.eng_block(c,7),600),A={calls:v.subarray(0,e+1),acc:v.subarray(10,10+e+1),rej:v.subarray(20,20+e+1),dead:v.subarray(30,30+e+1),undo:v.subarray(40,40+e+1),drej:p.subarray(0,a+1),dacc:p.subarray(82,82+a+1),ddead:p.subarray(164,164+a+1),dcalls:p.subarray(246,246+a+1)},k=null;function x(r,n,t){return n?t?e+r:r:t?3*e+r:2*e+r}function I(n,t,o){var u=t?e:1,a=t?n:n*e,l=u;o&&(a+=(e-1)*u,l=-u);for(var s=0,i=0,c=-1,f=0;f<e;f++,a+=l){var d=b[a];0!==d&&(c<0&&(c=f),d>s&&(s=d,i++))}return c<0&&(c=e),{clue:r[x(n,t,o)],vis:i,gap:c}}function T(e,r,n){var t=I(e,r,n);return t.vis+t.gap<t.clue?1:t.vis===t.clue&&0!==t.gap?2:0}function F(e,r,n){return r?"column "+(e+1)+" from the "+(n?"bottom":"top"):"row "+(e+1)+" from the "+(n?"right":"left")}function z(n,t,o){var u=t?e:1,a=t?n:n*e,l=u;o&&(a+=(e-1)*u,l=-u);for(var s=0,i=0,c=!0,f=0;f<e;f++,a+=l){var d=b[a];0===d?c=!1:d>s&&(s=d,i++)}return{clue:r[x(n,t,o)],vis:i,filled:c}}function _(r,n){var t,o,u=0,a=0;for(t=0;t<e;t++)u|=1<<b[r*e+t],u|=1<<b[t*e+n];for(o=1;o<=e;o++)u&1<<o||a++;return a}var C={n:e,order:n,grid:b,wasm:!0,step:function(r){var n=u.eng_step(c);if(k=null,2===n&&r){u.eng_sync(c);var t=h[13],o=h[14];b[t*e+o]=h[15];var a=i?h[30]:s?function(r,n){var t;for(t=0;t<e;t++)if(t!==n&&0===b[r*e+t]&&0===_(r,t))return r*e+t;for(t=0;t<e;t++)if(t!==r&&0===b[t*e+n]&&0===_(t,n))return t*e+n;return-1}(t,o):-1;k=a>=0?[{name:"the cell at row "+(1+(a/e|0))+", column "+(a%e+1),why:"no number is left to try there",clueIdx:-1,cell:a}]:l?function(r,n){var t,o=[],u=!0,a=!0;for(t=0;t<e;t++)0===b[r*e+t]&&(u=!1),0===b[t*e+n]&&(a=!1);u&&o.push([r,!1,0],[r,!1,1]),a&&o.push([n,!0,0],[n,!0,1]);for(var l=[],s=0;s<o.length;s++){var i=o[s],c=z(i[0],i[1],i[2]);c.vis!==c.clue&&l.push({name:F(i[0],i[1],i[2]),why:"shows "+c.vis+", clue is "+c.clue,clueIdx:x(i[0],i[1],i[2])})}return l}(t,o):function(e,r){for(var n=[[e,!1,0],[e,!1,1],[r,!0,0],[r,!0,1]],t=[],o=0;o<4;o++){var u=n[o];if(0!==T(u[0],u[1],u[2])){var a,l=I(u[0],u[1],u[2]);a=l.vis+l.gap<l.clue?"at most "+(l.vis+l.gap)+" can ever be visible, clue is "+l.clue:"clue "+l.clue+" is already met, but an empty edge cell would add one more",t.push({name:F(u[0],u[1],u[2]),why:a,clueIdx:x(u[0],u[1],u[2])})}}return t}(t,o),b[t*e+o]=0}return n},run:function(e,r){return k=null,1===u.eng_run(c,e,r?1:0)},trace:function(){return u.eng_sync(c),{size:h[16],n:h[17],min:g,max:y,sum:w,curMin:h[19],curMax:h[20],curSum:h[24],curCnt:h[18],steps:h[0],bestStart:h[21],bestEnd:h[22],bestLen:h[11],total:a}},viewInfo:l?function(e,r,n){var t=z(e,r,n);return{clue:t.clue,vis:t.vis,gap:t.filled?0:1}}:I,clueIndex:x,stats:function(){u.eng_sync(c);var r=1===h[8],n=h[6];return l?{n:e,d:n,maxD:h[7],steps:h[0],accepted:h[1],rejected:h[2],deadEnds:h[3],undone:h[4],calls:h[5],done:r,status:1===h[9]?"solved":2===h[9]?"nosolution":"running",pendingUndo:1===h[10],last:{type:h[12],r:h[13],c:h[14],num:h[15],bad:k,checked:h[23],forced:h[26],why:h[27]},forced:h[28],guesses:h[29],by:A,rules:m,longestClimb:h[11],num:0,line:r?0:h[25]/e|0,cell:{r:h[25]/e|0,c:h[25]%e}}:{n:e,d:n,maxD:h[7],steps:h[0],accepted:h[1],rejected:h[2],deadEnds:h[3],undone:h[4],calls:h[5],done:r,status:1===h[9]?"solved":2===h[9]?"nosolution":"running",pendingUndo:1===h[10],last:{type:h[12],r:h[13],c:h[14],num:h[15],bad:k},by:A,rules:m,longestClimb:h[11],num:r?0:e-(n/e|0),line:r?0:n%e}},release:function(){c<0||(o.reg&&o.reg.unregister(C),u.eng_free(c),c=-1)}};return"function"==typeof FinalizationRegistry&&(o.reg||(o.reg=new FinalizationRegistry(function(e){u.eng_free(e)})),o.reg.register(C,c,C)),C}function u(e){var r=String(e).trim();if(!r)return{error:"Enter the clues as numbers separated by spaces."};for(var n=r.split(/[\s,]+/),t=[],o=0;o<n.length;o++){if(!/^[0-9]$/.test(n[o]))return{error:"“"+n[o]+"” is not a single digit. Clues are digits 1 to 9 separated by spaces."};t.push(+n[o])}if(t.length%4!=0)return{error:"Got "+t.length+" clues. The count must be a multiple of 4, one set per side."};var u=t.length/4;if(u>9)return{error:"That would be a "+u+"×"+u+" puzzle. The largest size is 9×9."};for(var a=0;a<t.length;a++)if(t[a]<1||t[a]>u)return{error:"Clue "+(a+1)+" is "+t[a]+". For a "+u+"×"+u+" puzzle every clue must be between 1 and "+u+"."};return{n:u,clues:t}}globalThis.TRACE_MAX_EVENTS=r,globalThis.loadWasm=function(e){try{if("undefined"==typeof WebAssembly)return Promise.resolve(!1);for(var r="function"==typeof atob?atob(e):Buffer.from(e,"base64").toString("binary"),n=new Uint8Array(r.length),o=0;o<r.length;o++)n[o]=r.charCodeAt(o);return WebAssembly.instantiate(n,{}).then(function(e){return t=e.instance.exports,!0},function(){return!1})}catch(e){return Promise.resolve(!1)}},globalThis.builtinAvailable=function(){return!!t||"function"==typeof createEngine},globalThis.engineMeta=e,globalThis.makeEngine=function(r,u,a,l){var s=null;if(!t||"row"!==a&&"col"!==a&&"brute"!==a&&"fc"!==a&&"mrv"!==a&&"pb"!==a||(s=o(r,u,a)),s||"trace"!==a||(s=n(r,u,l,l.style)),s||"function"!=typeof createEngine||(s="brute"===a||"fc"===a||"mrv"===a||"pb"===a?createBruteEngine(r,u,a):createEngine(r,u,a)),!s)throw new Error("The built-in solvers need WebAssembly.");var i=e(a,r,l&&l.style);return s.kind=i.kind,s.group=i.group,s.ruleInfo=i.ruleInfo,s.order=a,s},globalThis.parseClues=u,globalThis.parseTrace=function(e,n){n=n||r;var t=e.length,o=0,a=0,l=!1,s=0,i=null,c=0,f=0,d=!1,h=null,v=null,m=null,p=null,b=null,g=0,y=0,w=[];function A(e){return{error:"Line "+a+": "+e}}function k(e){h=new Uint8Array(e),v=new Uint8Array(e),m=new Uint8Array(e),p=new Uint8Array(e)}for(var x=0;o<t;){var I=e.indexOf("\n",o);I<0&&(I=t);var T=e.substring(o,I);o=I+1,a++,13===T.charCodeAt(T.length-1)&&(T=T.substring(0,T.length-1));var F=T.trim();if(""!==F&&"#"!==F.charAt(0))if(l){var z=F.charAt(0);if("+"!==z&&"-"!==z){var _=/^(\w+)\s*(.*)$/.exec(F),C=_?_[1].toLowerCase():"";if("n"===C){if(!/^[1-9]$/.test(_[2]))return A("n must be a single digit from 1 to 9.");if(s)return A("n is given twice.");s=+_[2],b=new Int8Array(s*s)}else{if("clues"!==C){if("end"===C){var E=(_[2]||"").toLowerCase();if("solved"===E)f=1;else if("nosolution"===E)f=2;else{if("cut"!==E)return A("end must be followed by solved, nosolution or cut.");f=3}break}return A("did not understand “"+F.substring(0,30)+(F.length>30?"…":"")+"”.")}if(!s)return A("put n (the puzzle size) before clues.");var R=u(_[2]);if(R.error)return A(R.error);if(R.n!==s)return A("n is "+s+" but there are "+R.clues.length+" clues, which is a "+R.n+"×"+R.n+" puzzle.");i=R.clues,k(1024),x=1024}}else{if(!i)return A("the puzzle size (n) and clues must come before the first placement.");var M=F.split(/\s+/),S="+"===z;if(M.length!==(S?4:3)||M[0]!==z)return A("expected "+(S?"+ row column number":"- row column")+".");var j=+M[1],W=+M[2],U=S?+M[3]:0;if(!/^\d+$/.test(M[1])||!/^\d+$/.test(M[2])||S&&!/^\d+$/.test(M[3]))return A("row, column and number must be whole numbers.");if(j<1||j>s||W<1||W>s)return A("cell ("+M[1]+", "+M[2]+") is outside the "+s+"×"+s+" board. Rows and columns count from 1.");var $=(j-1)*s+(W-1);if(S){if(U<1||U>s)return A("a "+U+" cannot go in a "+s+"×"+s+" puzzle. Numbers run from 1 to "+s+".");if(b[$])return A("cell ("+j+", "+W+") already holds a "+b[$]+". Remove it before placing again.");b[$]=U,g++,y||(y=U)}else{if(!b[$])return A("cell ("+j+", "+W+") is already empty, so there is nothing to remove.");b[$]=0,g--}if(c>=n){d=!0;break}if(c>=x){var K=Math.max(1024,2*x),L=h,V=v,N=m,Y=p;k(K),h.set(L),v.set(V),m.set(N),p.set(Y),x=K}h[c]=S?1:2,v[c]=j-1,m[c]=W-1,p[c]=U,c++}}else{if(!/^SKYTRACE\s+1\s*$/.test(F))return A("a trace file starts with the line SKYTRACE 1. This file does not look like one.");l=!0}}if(!l)return{error:"The file is empty."};if(!i)return{error:"The file has no puzzle: it needs n and clues lines before the events."};d&&(f=3);var D=s*s,P="";1===f?g!==D?w.push("The trace says solved, but "+(D-g)+" cell"+(D-g===1?" is":"s are")+" still empty at the end."):P=function(e,r,n){var t,o;for(t=0;t<e;t++){var u=0,a=0;for(o=0;o<e;o++)u|=1<<n[t*e+o],a|=1<<n[o*e+t];if(u!==(1<<e+1)-2)return"Row "+(t+1)+" does not hold each number once.";if(a!==(1<<e+1)-2)return"Column "+(t+1)+" does not hold each number once."}function l(r){for(var n=0,t=0,o=0;o<e;o++){var u=r(o);u>n&&(n=u,t++)}return t}for(t=0;t<e;t++){var s=[["column "+(t+1)+" from the top",l(function(r){return n[r*e+t]}),r[t]],["column "+(t+1)+" from the bottom",l(function(r){return n[(e-1-r)*e+t]}),r[e+t]],["row "+(t+1)+" from the left",l(function(r){return n[t*e+r]}),r[2*e+t]],["row "+(t+1)+" from the right",l(function(r){return n[t*e+(e-1-r)]}),r[3*e+t]]];for(o=0;o<4;o++)if(s[o][1]!==s[o][2])return"Final board: "+s[o][0]+" shows "+s[o][1]+", the clue is "+s[o][2]+"."}return""}(s,i,b):2===f&&0!==g&&w.push("The trace says no solution, but "+g+" building"+(1===g?" is":"s are")+" still standing at the end.");var B={n:s,clues:i,count:c,K:h,R:v,C:m,V:p,end:f,truncated:d,standing:g,firstPlace:y,warnings:w,verdict:P,style:"tall",reason:""},q=function(e,r,n,t,o,u,a){var l=new Int8Array(e*e),s=0,i=0,c=0;function f(n,t,o){var u=t?n:n*e,a=t?e:1;o&&(u+=(e-1)*a,a=-a);for(var s=0,i=0,c=-1,f=!0,d=0;d<e;d++,u+=a){var h=l[u];0===h?f=!1:(c<0&&(c=d),h>s&&(s=h,i++))}return c<0&&(c=e),{clue:r[t?o?e+n:n:o?3*e+n:2*e+n],vis:i,gap:c,filled:f}}function d(e,r,n){var t=f(e,r,n);return t.vis+t.gap<t.clue||t.vis===t.clue&&0!==t.gap}function h(e,r,n){var t=f(e,r,n);return t.filled&&t.vis!==t.clue}for(var v=0;v<a;v++){var m=t[v]*e+o[v];if(1===n[v]){if(l[m]=u[v],!(v+1<a&&2===n[v+1]&&t[v+1]===t[v]&&o[v+1]===o[v])&&v+1<a){var p=t[v],b=o[v];c++,(d(p,!1,0)||d(p,!1,1)||d(b,!0,0)||d(b,!0,1))&&s++,(h(p,!1,0)||h(p,!1,1)||h(b,!0,0)||h(b,!0,1))&&i++}}else l[m]=0}return 1===e||0===s?{style:"tall",reason:1===e?"":"every placement your solver kept passes the tallest-first check"}:0===i?{style:"complete",reason:s+" of "+c+" kept placements would break the tallest-first check, but none breaks a finished row or column"}:{style:"none",reason:"your solver keeps placements that break both checks"}}(s,i,h,v,m,p,Math.min(c,3e5));return B.style=q.style,B.reason=q.reason,B},globalThis.traceFromEngine=function(e,r,n,t){for(var o=["SKYTRACE 1","n "+r,"clues "+n.join(" ")],u=0;!e.stats().done&&u<t;){var a=e.step(!1),l=e.stats().last;1===a?o.push("+ "+(l.r+1)+" "+(l.c+1)+" "+l.num):2===a?(o.push("+ "+(l.r+1)+" "+(l.c+1)+" "+l.num),o.push("- "+(l.r+1)+" "+(l.c+1))):4===a&&o.push("- "+(l.r+1)+" "+(l.c+1)),u++}var s=e.stats();return o.push("end "+("solved"===s.status?"solved":"nosolution"===s.status?"nosolution":"cut")),o.join("\n")+"\n"}}();
+
+/* What a replayed trace reports about itself: how the work is grouped. */
+function engineMeta(n) {
+	var keys = [], i;
+	for (i = 1; i <= n; i++) keys.push(i);
+	return {
+		kind: "trace",
+		group: { header: "Row", caption: "Where the work goes, by row of the placement depth (from your trace)", keys: keys, prefix: "Row " }
+	};
+}
+
+/* ---------- replaying a trace written by someone else's solver ----------
+	 A trace is a list of "placed" and "removed" events. Nothing is solved here:
+	 the engine walks the list and turns it into the steps a solver would take.
+
+	 Reading the events:
+	 - A placement followed at once by the removal of the same cell is a
+		 rejection: the solver took it out again straight away.
+	 - Any other removal is an undo. Every undo is preceded by the dead end that
+		 forced it, so a dead end is added just before it.   */
+var TRACE_MAX_EVENTS = 2000000;
+
+function parseTrace(text, maxEvents) {
+	maxEvents = maxEvents || TRACE_MAX_EVENTS;
+	var len = text.length, pos = 0, lineNo = 0, started = false;
+	var n = 0, clues = null, count = 0, end = 0, truncated = false;
+	var K = null, R = null, C = null, V = null, grid = null, standing = 0;
+	var firstPlace = 0, warnings = [];
+	function err(msg) { return { error: "Line " + lineNo + ": " + msg }; }
+	function alloc(cap) {
+		K = new Uint8Array(cap); R = new Uint8Array(cap); C = new Uint8Array(cap); V = new Uint8Array(cap);
+	}
+	var cap = 0;
+	while (pos < len) {
+		var nl = text.indexOf("\n", pos);
+		if (nl < 0) nl = len;
+		var line = text.substring(pos, nl);
+		pos = nl + 1; lineNo++;
+		if (line.charCodeAt(line.length - 1) === 13) line = line.substring(0, line.length - 1);
+		var t = line.trim();
+		if (t === "" || t.charAt(0) === "#") continue;
+		if (!started) {
+			if (!/^SKYTRACE\s+1\s*$/.test(t)) {
+				return err("a trace file starts with the line SKYTRACE 1. This file does not look like one.");
+			}
+			started = true; continue;
+		}
+		var c0 = t.charAt(0);
+		if (c0 === "+" || c0 === "-") {
+			if (!clues) return err("the puzzle size (n) and clues must come before the first placement.");
+			var parts = t.split(/\s+/);
+			var isPlace = c0 === "+";
+			if (parts.length !== (isPlace ? 4 : 3) || parts[0] !== c0) {
+				return err("expected " + (isPlace ? "+ row column number" : "- row column") + ".");
+			}
+			var rr = +parts[1], cc = +parts[2], vv = isPlace ? +parts[3] : 0;
+			if (!/^\d+$/.test(parts[1]) || !/^\d+$/.test(parts[2]) || (isPlace && !/^\d+$/.test(parts[3]))) {
+				return err("row, column and number must be whole numbers.");
+			}
+			if (rr < 1 || rr > n || cc < 1 || cc > n) return err("cell (" + parts[1] + ", " + parts[2] + ") is outside the " + n + "×" + n + " board. Rows and columns count from 1.");
+			var idx = (rr - 1) * n + (cc - 1);
+			if (isPlace) {
+				if (vv < 1 || vv > n) return err("a " + vv + " cannot go in a " + n + "×" + n + " puzzle. Numbers run from 1 to " + n + ".");
+				if (grid[idx]) return err("cell (" + rr + ", " + cc + ") already holds a " + grid[idx] + ". Remove it before placing again.");
+				grid[idx] = vv; standing++;
+				if (!firstPlace) firstPlace = vv;
+			} else {
+				if (!grid[idx]) return err("cell (" + rr + ", " + cc + ") is already empty, so there is nothing to remove.");
+				grid[idx] = 0; standing--;
+			}
+			if (count >= maxEvents) { truncated = true; break; }
+			if (count >= cap) { /* grow */
+				var ncap = Math.max(1024, cap * 2), oK = K, oR = R, oC = C, oV = V;
+				alloc(ncap); K.set(oK); R.set(oR); C.set(oC); V.set(oV); cap = ncap;
+			}
+			K[count] = isPlace ? 1 : 2; R[count] = rr - 1; C[count] = cc - 1; V[count] = vv; count++;
+			continue;
+		}
+		var m = /^(\w+)\s*(.*)$/.exec(t);
+		var key = m ? m[1].toLowerCase() : "";
+		if (key === "n") {
+			if (!/^[1-9]$/.test(m[2])) return err("n must be a single digit from 1 to 9.");
+			if (n) return err("n is given twice.");
+			n = +m[2]; grid = new Int8Array(n * n);
+		} else if (key === "clues") {
+			if (!n) return err("put n (the puzzle size) before clues.");
+			var p = parseClues(m[2]);
+			if (p.error) return err(p.error);
+			if (p.n !== n) return err("n is " + n + " but there are " + (p.clues.length) + " clues, which is a " + p.n + "×" + p.n + " puzzle.");
+			clues = p.clues; alloc(1024); cap = 1024;
+		} else if (key === "end") {
+			var w = (m[2] || "").toLowerCase();
+			if (w === "solved") end = 1; else if (w === "nosolution") end = 2; else if (w === "cut") end = 3;
+			else return err("end must be followed by solved, nosolution or cut.");
+			break;
+		} else {
+			return err("did not understand “" + t.substring(0, 30) + (t.length > 30 ? "…" : "") + "”.");
+		}
+	}
+	if (!started) return { error: "The file is empty." };
+	if (!clues) return { error: "The file has no puzzle: it needs n and clues lines before the events." };
+	if (truncated) end = 3;
+	var total = n * n, verdict = "";
+	if (end === 1) {
+		if (standing !== total) warnings.push("The trace says solved, but " + (total - standing) + " cell" + (total - standing === 1 ? " is" : "s are") + " still empty at the end.");
+		else verdict = checkBoard(n, clues, grid);
+	} else if (end === 2 && standing !== 0) {
+		warnings.push("The trace says no solution, but " + standing + " building" + (standing === 1 ? " is" : "s are") + " still standing at the end.");
+	}
+	var res = {
+		n: n, clues: clues, count: count, K: K, R: R, C: C, V: V, end: end, truncated: truncated,
+		standing: standing, firstPlace: firstPlace, warnings: warnings, verdict: verdict
+	};
+	return res;
+}
+
+/* "" when the board is a valid solution, else the first problem found. */
+function checkBoard(n, clues, g) {
+	var i, j;
+	for (i = 0; i < n; i++) {
+		var rs = 0, cs = 0;
+		for (j = 0; j < n; j++) { rs |= 1 << g[i * n + j]; cs |= 1 << g[j * n + i]; }
+		if (rs !== ((1 << (n + 1)) - 2)) return "Row " + (i + 1) + " does not hold each number once.";
+		if (cs !== ((1 << (n + 1)) - 2)) return "Column " + (i + 1) + " does not hold each number once.";
+	}
+	function count(get) { var mx = 0, k = 0; for (var q = 0; q < n; q++) { var x = get(q); if (x > mx) { mx = x; k++; } } return k; }
+	for (i = 0; i < n; i++) {
+		var got = [
+			["column " + (i + 1) + " from the top", count(function (q) { return g[q * n + i]; }), clues[i]],
+			["column " + (i + 1) + " from the bottom", count(function (q) { return g[(n - 1 - q) * n + i]; }), clues[n + i]],
+			["row " + (i + 1) + " from the left", count(function (q) { return g[i * n + q]; }), clues[2 * n + i]],
+			["row " + (i + 1) + " from the right", count(function (q) { return g[i * n + (n - 1 - q)]; }), clues[3 * n + i]]
+		];
+		for (j = 0; j < 4; j++) if (got[j][1] !== got[j][2]) return "Final board: " + got[j][0] + " shows " + got[j][1] + ", the clue is " + got[j][2] + ".";
+	}
+	return "";
+}
+
+function createTraceEngine(n, clues, tr) {
+	var total = n * n;
+	var grid = new Int8Array(total);
+	var K = tr.K, R = tr.R, C = tr.C, V = tr.V, cnt = tr.count;
+	var p = 0, pend = 0, pendIdx = 0;
+	var callsBy = new Float64Array(n + 1), accBy = new Float64Array(n + 1), rejBy = new Float64Array(n + 1);
+	var deadBy = new Float64Array(n + 1), undoBy = new Float64Array(n + 1);
+	var climb = 0, longestClimb = 0;
+	var d = 0, maxD = 0, steps = 0;
+	var accepted = 0, rejected = 0, deadEnds = 0, undone = 0, calls = 1;
+	var done = false, status = "running";
+	var lastType = 0, lastR = 0, lastC = 0, lastNum = 0;
+	function key(x) { var g = (x / n) | 0; if (g >= n) g = n - 1; return g + 1; }
+	callsBy[key(0)] = 1;
+
+	var TCAP = 600, tMin = new Int16Array(TCAP), tMax = new Int16Array(TCAP), tSum = new Float64Array(TCAP);
+	var tN = 0, tSize = 1, tCnt = 0, tCurMin = 32767, tCurMax = -1, tCurSum = 0;
+	var accD = new Float64Array(total + 1), rejD = new Float64Array(total + 1);
+	var deadD = new Float64Array(total + 1), callsD = new Float64Array(total + 1);
+	var climbStart = 0, bestStart = 0, bestEnd = 0;
+	callsD[0] = 1;
+	function closeBucket() {
+		tMin[tN] = tCurMin; tMax[tN] = tCurMax; tSum[tN] = tCurSum; tN++;
+		tCnt = 0; tCurMin = 32767; tCurMax = -1; tCurSum = 0;
+		if (tN === TCAP) {
+			for (var i = 0; i < TCAP / 2; i++) {
+				tMin[i] = Math.min(tMin[2 * i], tMin[2 * i + 1]);
+				tMax[i] = Math.max(tMax[2 * i], tMax[2 * i + 1]);
+				tSum[i] = tSum[2 * i] + tSum[2 * i + 1];
+			}
+			tN = TCAP / 2; tSize *= 2;
+		}
+	}
+	function rec() {
+		if (d < tCurMin) tCurMin = d;
+		if (d > tCurMax) tCurMax = d;
+		tCurSum += d;
+		if (++tCnt === tSize) closeBucket();
+	}
+
+	function setLast(t, r, c, num) { lastType = t; lastR = r; lastC = c; lastNum = num; }
+	function startDead(rr, cc) {
+		deadEnds++; deadBy[key(d)]++; deadD[d]++;
+		setLast(3, rr, cc, 0);
+		pend = 4;
+	}
+
+	function stepCore() {
+		if (done) return 0;
+		var r, c, num, idx;
+		if (pend === 0 && p >= cnt) {
+			if (tr.end === 2 && d === 0) {
+				steps++; deadEnds++; deadBy[key(0)]++; deadD[0]++;
+				setLast(3, 0, 0, 0);
+				done = true; status = "nosolution";
+				return 3;
+			}
+			done = true; status = tr.end === 1 && tr.standing === total ? "solved" : "cut";
+			return 0;
+		}
+		steps++;
+		if (pend === 4) {
+			pend = 0;
+			r = R[pendIdx]; c = C[pendIdx]; idx = r * n + c; num = grid[idx];
+			grid[idx] = 0; d--;
+			undone++; undoBy[key(d)]++;
+			climb++; if (climb > longestClimb) { longestClimb = climb; bestStart = climbStart; bestEnd = steps; }
+			setLast(4, r, c, num);
+			return 4;
+		}
+		if (K[p] === 2) { /* a removal that is not a rejection: the solver backed up */
+			pendIdx = p; p++;
+			startDead(R[pendIdx], C[pendIdx]);
+			return 3;
+		}
+		r = R[p]; c = C[p]; num = V[p]; idx = r * n + c;
+		var paired = p + 1 < cnt && K[p + 1] === 2 && R[p + 1] === r && C[p + 1] === c;
+		grid[idx] = num;
+		if (paired) {
+			rejected++; rejBy[key(d)]++; rejD[d]++;
+			grid[idx] = 0; p += 2;
+			setLast(2, r, c, num);
+			return 2;
+		}
+		/* kept */
+		accepted++; accBy[key(d)]++; accD[d]++; climb = 0; climbStart = steps;
+		setLast(1, r, c, num);
+		p++;
+		d++; if (d > maxD) maxD = d;
+		if (d === total) {
+			if (tr.end === 1) { done = true; status = "solved"; }
+			return 1;
+		}
+		callsD[d]++; calls++; callsBy[key(d)]++;
+		return 1;
+	}
+
+	function stepInner() {
+		var t = stepCore();
+		if (t) rec();
+		return t;
+	}
+
+	return {
+		n: n, order: "trace", grid: grid,
+		step: function () { return stepInner(); },
+		run: function (max, stopOnDead) {
+			var i = 0;
+			while (i < max && !done) {
+				var k = Math.min(tSize - tCnt, max - i), mn = tCurMin, mx = tCurMax, sm = tCurSum, j = 0, hit = false;
+				while (j < k && !done) {
+					var t = stepCore();
+					if (t) {
+						j++;
+						if (d < mn) mn = d;
+						if (d > mx) mx = d;
+					sm += d;
+						if (t === 3 && stopOnDead) { hit = true; break; }
+					}
+				}
+				tCurMin = mn; tCurMax = mx; tCurSum = sm; tCnt += j; i += j;
+				if (tCnt === tSize) closeBucket();
+				if (hit) return true;
+				if (j === 0) break;
+			}
+			return false;
+		},
+		trace: function () {
+			return { size: tSize, n: tN, min: tMin, max: tMax, sum: tSum, curMin: tCurMin, curMax: tCurMax, curSum: tCurSum, curCnt: tCnt,
+							 steps: steps, bestStart: bestStart, bestEnd: bestEnd, bestLen: longestClimb, total: total };
+		},
+		info: function () { return { events: cnt, used: p, end: tr.end, truncated: tr.truncated }; },
+		stats: function () {
+			return {
+				n: n, d: d, maxD: maxD, steps: steps, accepted: accepted,
+				rejected: rejected, deadEnds: deadEnds, undone: undone, calls: calls,
+				done: done, status: status, pendingUndo: pend === 4,
+				last: { type: lastType, r: lastR, c: lastC, num: lastNum },
+				by: { calls: callsBy, acc: accBy, rej: rejBy, dead: deadBy, undo: undoBy, dcalls: callsD, dacc: accD, drej: rejD, ddead: deadD },
+				longestClimb: longestClimb,
+				num: 0, line: 0, cell: { r: 0, c: 0 }
+			};
+		}
+	};
+}
+
+/* The page shows an empty board until a trace is loaded; it gets an engine with no events. */
+function makeEngine(n, clues, tr) {
+	if (!tr) tr = { K: [], R: [], C: [], V: [], count: 0, end: 0, truncated: false, standing: 0 };
+	var e = createTraceEngine(n, clues, tr);
+	var m = engineMeta(n);
+	e.kind = m.kind; e.group = m.group;
+	return e;
+}
+
+function parseClues(text) {
+	var t = String(text).trim();
+	if (!t) return { error: "Enter the clues as numbers separated by spaces." };
+	var parts = t.split(/[\s,]+/);
+	var clues = [];
+	for (var i = 0; i < parts.length; i++) {
+		if (!/^[0-9]$/.test(parts[i])) {
+			return { error: "“" + parts[i] + "” is not a single digit. Clues are digits 1 to 9 separated by spaces." };
+		}
+		clues.push(+parts[i]);
+	}
+	if (clues.length % 4 !== 0) {
+		return { error: "Got " + clues.length + " clues. The count must be a multiple of 4, one set per side." };
+	}
+	var n = clues.length / 4;
+	if (n > 9) return { error: "That would be a " + n + "×" + n + " puzzle. The largest size is 9×9." };
+	for (var j = 0; j < clues.length; j++) {
+		if (clues[j] < 1 || clues[j] > n) {
+			return { error: "Clue " + (j + 1) + " is " + clues[j] + ". For a " + n + "×" + n + " puzzle every clue must be between 1 and " + n + "." };
+		}
+	}
+	return { n: n, clues: clues };
+}

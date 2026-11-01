@@ -1,1 +1,840 @@
-!function(){var e=[1,2,4,8,15,30,60,120,300,1e3,3e3],t=2e7;function n(e){return document.getElementById(e)}var o,r=0,a=[],s="row",i="row",l="idle",c="",d="",u=!0,p=!1,f=!1,h=!1,m={right:0,total:0},v=3e5,b={1:"accepted",2:"rejected",3:"a dead end",4:"undone"},g=[],y=[],k=[],w=[],x=0,C=0,E=0,L=0,S=!1,j=0,T=0,z="",A=0,P=0,R=0,M=0,N=0,F=1e5,D=!1,I=0,U=!0,H=0,q=0,B={running:!1,items:[],timer:0},O=null,_="",Y=50331648;function V(){return"brute"===s||"fc"===s||"mrv"===s||"pb"===s}function X(e){return makeEngine(r,a,e||s,O)}function W(){return engineMeta(s,r,O&&O.style)}function J(){return!!O&&O.n===r&&O.clues.join(" ")===a.join(" ")}function $(e){return Math.round(e).toLocaleString("en-US")}var G=["1","2","12","576","161,280","812,851,200","61,479,419,904,000","108,776,032,459,082,956,800","5,524,751,496,156,892,842,531,225,600"];function Z(){var e=n("board"),t=r+2;e.innerHTML="",k=[],y=[],e.style.setProperty("--cols",t);for(var o=0;o<t;o++)for(var s=0;s<t;s++){var i=document.createElement("div"),l={kind:"corner"},c=o>0&&o<t-1,d=s>0&&s<t-1;c&&d?l={kind:"in",r:o-1,c:s-1}:0===o&&d?l={kind:"clue",line:s-1,isCol:!0,dir:0}:o===t-1&&d?l={kind:"clue",line:s-1,isCol:!0,dir:1}:0===s&&c?l={kind:"clue",line:o-1,isCol:!1,dir:0}:s===t-1&&c&&(l={kind:"clue",line:o-1,isCol:!1,dir:1}),i.className="cell","clue"===l.kind&&(l.idx=K(l.line,l.isCol,l.dir),i.textContent=U?"":a[l.idx],i.className="cell clue"),e.appendChild(i),k.push(i),y.push(l)}}function K(e,t,n){return t?n?r+e:e:n?3*r+e:2*r+e}function Q(){var e=W();n("by-h0").textContent=e.group.header,n("by-caption").textContent=e.group.caption;var t=n("by-body");t.innerHTML="",w=[];for(var o=0;o<e.group.keys.length;o++){var r=e.group.keys[o],a=document.createElement("tr");a.innerHTML='<td class="num">'+e.group.prefix+r+'</td><td></td><td class="share"><div class="bar"><i></i></div></td><td></td><td></td><td></td><td></td>',t.appendChild(a),w.push({v:r,bar:a.querySelector(".bar i"),t:a.children})}se()}var ee=[],te="puz",ne="num",oe=["puz","sim","stats","brk","cmp"];function re(e,t){te=e;for(var r=0;r<oe.length;r++){var a=oe[r]===e;n("tab-"+oe[r]).setAttribute("aria-selected",a?"true":"false"),n("tab-"+oe[r]).tabIndex=a?0:-1,n("panel-"+oe[r]).hidden=!a}t&&n("tab-"+e).focus(),o&&ge()}function ae(e){return"trace"===s?"tall"!==O.style?"Placement "+(e+1):"The "+(r-Math.min(r-1,e/r|0))+"s, #"+(e%r+1):"mrv"===s||"pb"===s?"Placement "+(e+1):V()?"Row "+(1+(e/r|0))+", column "+(e%r+1):"The "+(r-(e/r|0))+"s, "+("row"===s?"row ":"column ")+(e%r+1)}function se(){var e=n("depth-body"),t=r*r,o=[];ee=[],n("dh-place").textContent="mrv"===s||"pb"===s?"Placement":V()?"Filling cell":"trace"===s?"Placement":"Placing";for(var a=0;a<t;a++)o.push('<tr><td class="num">'+(a+1)+'</td><td class="spoil">'+ae(a)+'</td><td></td><td class="share"><div class="bar"><i></i></div></td><td></td><td></td><td></td><td></td></tr>');e.innerHTML=o.join("");for(var i=e.children,l=0;l<i.length;l++)ee.push({tr:i[l],bar:i[l].querySelector(".bar i"),t:i[l].children})}function ie(e){var t,n,o;e<r?(t=!0,n=e,o=0):e<2*r?(t=!0,n=e-r,o=1):e<3*r?(t=!1,n=e-2*r,o=0):(t=!1,n=e-3*r,o=1);for(var a=[],s=0;s<r;s++){var i=o?r-1-s:s;a.push(t?i*r+n:n*r+i)}return a}function le(){for(var e=W().ruleInfo,t="",o=0;o<e.length;o++)t+='<div class="st"><dt>'+(o+1)+". "+e[o].name+'</dt><dd id="st-r'+(o+1)+'">0</dd><p>'+e[o].desc+"</p></div>";n("rules-list").innerHTML=t;var a=V();return"trace"===s?(n("ts-acc").textContent="Placed and kept: your solver went on to build from it.",n("ts-rej").textContent="none"===O.style?"Placed and taken out again at once.":"Placed, taken out at once because it broke a clue.",void(n("ts-dead").textContent="Nothing left to try at this point, worked out from your trace. Each one makes the solver undo the placement before it.")):p?"pb"===s?(n("ts-acc").textContent="Placed, either because it was forced or as a guess, with no repeat in its row or column.",n("ts-rej").textContent="Placed, but it left a cell in its row or column with nothing to try, or a finished row or column missed its clue. Removed at once.",void(n("ts-dead").textContent="No number is left to try at the cell, or a number fits nowhere in its row or column. Each one makes the solver undo the placement before it.")):(n("ts-acc").textContent=a?"Placed with no repeat in its row or column, and any finished line matches its clues.":"Placed, and every clue is still reachable.",n("ts-rej").textContent="fc"===s?"Placed, but a finished row or column missed its clue, or a cell in its row or column was left with nothing to try. Removed at once.":a?"Placed, but a finished row or column missed its clue. Removed at once.":"Placed, failed the clue check, removed at once.",void(n("ts-dead").textContent=(a?"No number from 1 to "+r+" fits the cell.":"No free cell left for the number being placed.")+" Each one makes the solver undo the placement before it.")):(n("ts-acc").textContent="Placed, and kept for now.",n("ts-rej").textContent="Placed, then removed at once.",void(n("ts-dead").textContent="Nothing left to try here. Each one makes the solver undo the placement before it."))}var ce={pb:"Propagation and backtracking: before it places anything, the clues cut down the numbers each cell could hold. Then it only guesses when it has to. At each step it first looks for a forced move: a cell with only one number left, or a number that fits only one cell of its row or column. If there is none, it guesses in the open cell with the fewest numbers left. Every placement crosses its number off the cells in its row and column; one left with nothing is rejected at once. A number that fits nowhere in its row or column is a dead end, and the solver backs up to its last guess.",row:"Tallest first, row by row: places the largest number once in every row, then the next largest, down to 1. Inside a row it tries the columns from left to right. After each placement it checks the clues of that row and column, and rejects the placement as soon as a clue can no longer be met. If a number has no free cell left, it backs up and moves the previous number.",col:"Tallest first, column by column: places the largest number once in every column, then the next largest, down to 1. Inside a column it tries the rows from top to bottom. After each placement it checks the clues of that row and column, and rejects the placement as soon as a clue can no longer be met. If a number has no free cell left, it backs up and moves the previous number.",mrv:"Fewest options first: instead of a fixed order, it always fills the empty cell that has the fewest numbers it could still take (the first one, reading left to right and top to bottom, if several tie). It tries 1 upward in that cell, skipping any number already in its row or column. Clues are checked when a row or column is complete, as in brute force. The same puzzle takes a different amount of work because the order of the cells changed.",fc:"Forward checking: fills the cells in the same order as brute force, but every placement also crosses its number off the empty cells in the same row and column. If one of those cells is left with no number it could still take, the placement is rejected at once instead of being followed into a dead end. Finished rows and columns are checked against their clues as in brute force.",brute:"Brute force: fills the cells left to right, top to bottom, trying 1 up to the puzzle size in each and skipping any number already in that row or column. Clues are checked only when a row or column is complete, and a finished line that shows too few or too many buildings is rejected. If no number fits a cell, it backs up to the previous cell."},de={tall:"Tallest first: a placement removed straight away counts as a rejection when a clue of its row or column could no longer be met: too few buildings can still show, or the clue is met while an empty edge cell is left. Otherwise it was accepted and then backed out.",complete:"Brute force: a placement removed straight away counts as a rejection when it finished a row or column that misses its clue. Otherwise it was accepted and then backed out.",none:"No guessing: every placement removed straight away counts as a rejection. A solver that backs out of a placement because the next cell had no candidate will show extra rejections and fewer dead ends."};function ue(){n("opt-note").textContent="trace"===s?"Replaying "+(_||"your trace")+". Nothing is solved here: every placement and removal comes from your file."+(p?" "+de[O.style]:""):p?ce[s]:""}function pe(e){s=e;var t="row"===e||"col"===e;t&&(i=e),n("f-"+(t?"tall":e)).checked=!0,t&&(n("d-"+e).checked=!0),n("dir-row").hidden=!t,ue(),Q(),le()}function fe(e){return e.name.charAt(0).toUpperCase()+e.name.slice(1)+": "+e.why}function he(e,t,n,o){if(1===t){if(e.done&&"solved"===e.status)return"Placed "+n.num+" at "+o+". Last cell filled: solved.";if("pb"===s)return"Placed "+n.num+" at "+o+". "+(1===n.forced?"Forced: it is the only number that cell could still take.":2===n.forced?"Forced: it is the only cell in its row that could take "+n.num+".":3===n.forced?"Forced: it is the only cell in its column that could take "+n.num+".":"A guess: the open cell with the fewest numbers left.");var a=3===n.checked?" The finished row and column match their clues.":1===n.checked?" The finished row matches its clues.":2===n.checked?" The finished column matches its clues.":" No repeat in its row or column.";return"Placed "+n.num+" at "+o+"."+a}if(2===t){var i=n.bad&&n.bad.length?n.bad.map(fe).join("; "):"a finished line misses its clue";return"Rejected "+n.num+" at "+o+". "+i+"."}if(3===t&&"pb"===s){var l=n.why,c="no number is left to try at "+o;return 512&l?c="a "+(15&l)+" fits nowhere in "+(256&l?"column ":"row ")+(1+(l>>4&15)):0===e.d&&"nosolution"===e.status&&0===e.accepted&&(c="the clues leave a cell with no number"),"Dead end: "+c+"."+("nosolution"===e.status?" Nothing left to undo, so there is no solution.":" Backing up.")}return 3===t?"Dead end: no number from 1 to "+r+" fits "+o+"."+("nosolution"===e.status?" Nothing left to undo, so there is no solution.":" Backing up."):"Undone: "+n.num+" removed from "+o+". That cell tries its next number."}function me(e,t){var n=e.last,r="row "+(n.r+1)+", column "+(n.c+1);if(!p)return function(e,t,n,o){return 1===t?"Placed "+n.num+" at "+o+"."+(e.done&&"solved"===e.status?" Last cell filled: solved.":""):2===t?"Rejected "+n.num+" at "+o+".":3===t?"Dead end: nothing left to try here."+("nosolution"===e.status?" Nothing left to undo, so there is no solution.":" Backing up."):"Undone: "+n.num+" removed from "+o+"."}(e,t,n,r);if("trace"===o.kind)return function(e,t,n,o){if(1===t)return e.done&&"solved"===e.status?"Placed "+n.num+" at "+o+". Last cell filled: solved.":"complete"===O.style?he(e,t,n,o):"Placed "+n.num+" at "+o+"."+("tall"===O.style?" Every clue is still reachable.":"");if(2===t){if("none"===O.style)return"Rejected "+n.num+" at "+o+". Your solver took it out again at once.";var r=n.bad&&n.bad.length?n.bad.map(fe).join("; "):"a clue can no longer be met";return"Rejected "+n.num+" at "+o+". "+r+"."}return 3===t?"Dead end: your solver had nothing more to try here."+("nosolution"===e.status?" Nothing left to undo, so there is no solution.":" Backing up."):"Undone: "+n.num+" removed from "+o+"."}(e,t,n,r);if("brute"===o.kind)return he(e,t,n,r);if(1===t)return e.done&&"solved"===e.status?"Placed "+n.num+" at "+r+". Last cell filled: solved.":"Placed "+n.num+" at "+r+". Every clue is still reachable.";if(2===t){var a=n.bad&&n.bad.length?n.bad.map(function(e){return e.name.charAt(0).toUpperCase()+e.name.slice(1)+": "+e.why}).join("; "):"a clue can no longer be met";return"Rejected "+n.num+" at "+r+". "+a+"."}if(3===t){var i="row"===s?"row "+(n.r+1):"column "+(n.c+1);return"Dead end: no free cell for a "+n.num+" in "+i+"."+("nosolution"===e.status?" Nothing left to undo, so there is no solution.":" Backing up.")}return"Undone: "+n.num+" removed from "+r+". The number before it tries its next cell."}var ve={1:"✓",2:"✕",3:"⊘",4:"↶"};function be(e){if(e){var t=o.stats();g.push({n:t.steps,t:e,snap:t}),g.length>200&&g.shift()}}function ge(){A=performance.now();var e,a=o.stats(),i=o.grid,f=a.last,h="brute"===o.kind,m="trace"===o.kind,v="row"===s,b=r*r,x=3===f.type?v?f.r:f.c:a.line,C=3===f.type?f.r:a.cell?a.cell.r:0,E=3===f.type?f.c:a.cell?a.cell.c:0,L={},j={},T="";if(2===f.type&&f.bad&&f.bad.length&&!U){for(var F=!1,I=!1,_=!1,Y=0;Y<f.bad.length;Y++)if(void 0===f.bad[Y].cell){if(L[f.bad[Y].clueIdx]=!0,I=!0,p){for(var V=ie(f.bad[Y].clueIdx),X=!1,W=0,J=0,Z=0,K=0;K<V.length;K++){var Q=V[K]/r|0,oe=V[K]%r,re=Q===f.r&&oe===f.c?f.num:i[V[K]];0===re?X||(j[V[K]]=j[V[K]]||{cls:" gapc",txt:"+1"},Z++,F=!0):(X=!0,re>W&&(W=re,J++,j[V[K]]={cls:" cnt",txt:String(J)}))}T+='<span class="w"><b>'+f.bad[Y].name.charAt(0).toUpperCase()+f.bad[Y].name.slice(1)+"</b>: "+f.bad[Y].why+" (counted "+J+" visible"+(Z?", "+Z+" empty edge cell"+(Z>1?"s":""):"")+").</span>"}}else j[f.bad[Y].cell]={cls:" gapc",txt:"0"},_=!0,p&&(T+='<span class="w"><b>'+f.bad[Y].name.charAt(0).toUpperCase()+f.bad[Y].name.slice(1)+"</b>: "+f.bad[Y].why+".</span>");p&&I&&(T+='<span class="key">Dark-ringed numbers: the buildings the clue counted, counted from its edge.'+(F?" Dashed +1: empty edge cells that could still show one more.":"")+"</span>"),p&&_&&(T+='<span class="key">Dashed 0: an empty cell that can no longer take any number.</span>')}T!==c&&(n("why").innerHTML=T,c=T);for(var ae=0;ae<k.length;ae++){var se=y[ae],le=k[ae];if("clue"===se.kind){var ce=o.viewInfo(se.line,se.isCol,se.dir),de="cell clue";U||(L[se.idx]?de+=" bad":ce.vis===ce.clue&&0===ce.gap&&(de+=" met")),le.className!==de&&(le.className=de)}else if("in"===se.kind){var ue=i[se.r*r+se.c],pe="cell in",fe=ue?String(ue):"";U||a.done||m||!p&&!h||(h?se.r!==C||se.c!==E:v?se.r!==x:se.c!==x)||(pe+=" band",3===f.type&&(pe+=" deadband")),f.type&&f.r===se.r&&f.c===se.c&&3!==f.type&&(1===f.type?pe+=" evok":2===f.type?(pe+=" evrej",ue||(pe+=" ghost",fe=String(f.num))):4===f.type&&(pe+=" evundo",ue||(pe+=" ghost",fe=String(f.num))));var he=j[se.r*r+se.c];he&&(pe+=he.cls);var be=he?he.txt:"";(le.getAttribute("data-s")||"")!==be&&(be?le.setAttribute("data-s",be):le.removeAttribute("data-s")),le.className!==pe&&(le.className=pe),le.textContent!==fe&&(le.textContent=fe),le.style.setProperty("--h",ue?(ue/r).toFixed(3):"0")}}n("board").classList.toggle("solved","solved"===a.status),e=U?"No puzzle loaded":m&&"cut"===a.status?(O.truncated?"Showing the first part of a longer run":"The trace ends here")+" · "+$(a.steps)+" steps":"solved"===a.status?"Solved in "+$(a.steps)+" steps":"nosolution"===a.status?"No solution, found after "+$(a.steps)+" steps":"ff"===l?"Fast-forwarding…":m?"Replaying your solver · "+a.d+" of "+b+" standing"+(a.pendingUndo?" (backing up)":""):h?3===f.type?"Dead end at row "+(C+1)+", column "+(E+1)+" · backing up":"Filling row "+(C+1)+", column "+(E+1)+" · trying 1 to "+r+(a.pendingUndo?" (backing up)":""):p?3===f.type?"Dead end in "+(v?"row ":"column ")+(x+1)+" · backing up":"Placing the "+a.num+"s · "+(v?"row ":"column ")+(a.line+1)+" of "+r+(a.pendingUndo?" (backing up)":""):3===f.type?"Dead end · backing up":"Searching · "+a.d+" of "+b+" standing"+(a.pendingUndo?" (backing up)":""),n("status").textContent=e,n("rate").textContent="",n("c-acc").textContent=$(a.accepted),n("c-rej").textContent=$(a.rejected),n("c-dead").textContent=$(a.deadEnds),n("c-steps").textContent=$(a.steps),n("c-calls").textContent=U?"0":$(a.calls),n("c-rem").textContent=$(a.rejected+a.undone);var ge,ye="solved"===a.status?b:a.d;n("depth-fill").style.width=(ye/b*100).toFixed(1)+"%",n("depth-text").textContent=U?"":ye+" of "+b+" standing · deepest so far "+("solved"===a.status?b:a.maxD),U&&(n("depth-fill").style.width="0%"),n("space-text").textContent=U?"":(ge=r)+"×"+ge+": "+G[ge-1]+(1===ge?" possible complete grid":" possible complete grids");var xe=a.accepted+a.rejected;n("st-rate").textContent=xe?(a.accepted/xe*100).toFixed(1)+"%":"—";var Ce="solved"===a.status?b:a.d;if(n("st-stand").textContent=a.accepted?$(Ce)+" of "+$(a.accepted)+" · "+we(Ce/a.accepted):"—",n("st-climb").textContent=0===a.steps?"—":$(a.longestClimb)+(1===a.longestClimb?" placement":" placements"),n("st-time-row").hidden=m,n("st-forced-row").hidden="pb"!==s,"pb"===s){var Ee=a.forced+a.guesses;n("st-forced").textContent=0===a.steps?"—":$(a.forced)+" forced, "+$(a.guesses)+" guessed"+(Ee?" · "+we(a.forced/Ee)+" forced":"")}for(var Le=1;Le<=o.ruleInfo.length;Le++)n("st-r"+Le).textContent=0===a.steps?"—":$(a.rules[Le])+(a.rejected?" · "+we(a.rules[Le]/a.rejected):"");var Se=performance.now(),je=P+(M?Se-M:0),Te=R+(M?a.steps-N:0);n("st-time").textContent=je>0?ke(je)+" · "+$(Te/(je/1e3))+" steps/s":"—",function(e){var t=o.trace(),a=r*r,s=Math.max(1,e.steps);function i(e){return(69-e/a*66).toFixed(1)}function l(e){return(e/s*600).toFixed(1)}var c,d=t.n+(t.curCnt>0?1:0),u=[],p=[],f=[],h="",m="solved"===e.status&&e.maxD<a,v=m?a:e.maxD;for(c=0;c<d;c++){var b=c>=t.n,g=c===d-1,y=b?t.curMin:t.min[c],k=b?t.curMax:t.max[c],w=b?t.curCnt:t.size,x=(b?t.curSum:t.sum[c])/w;m&&g&&(k=a,x+=1/w,1===w&&(y=a));var C=l((c*t.size+Math.min((c+1)*t.size,s))/2);u.push(C+","+i(k)),p.push(C+","+i(y)),f.push(C+","+i(x))}if(t.bestLen>0){var E=+l(t.bestStart);h+='<rect x="'+E+'" y="0" width="'+Math.max(2,+l(t.bestEnd)-E).toFixed(1)+'" height="72" style="fill:var(--undo-soft)"><title>Longest climb back: '+$(t.bestLen)+" placements undone in a row, steps "+$(t.bestStart)+" to "+$(t.bestEnd)+"</title></rect>"}v>0&&(h+='<line x1="0" x2="600" y1="'+i(v)+'" y2="'+i(v)+'" stroke-dasharray="4 4" style="stroke:var(--muted)" stroke-width="1" vector-effect="non-scaling-stroke"/>'),d&&t.size>1&&(h+='<polygon points="'+u.join(" ")+" "+p.slice().reverse().join(" ")+'" style="fill:var(--accent);fill-opacity:0.22;stroke:none"/>'),d&&(h+='<polyline points="'+f.join(" ")+'" fill="none" style="stroke:var(--accent)" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'),n("trace").innerHTML=h,n("trace-end").textContent=U?"":"step "+$(e.steps),n("trace-key").textContent=U||t.size<2?"":"line: average · band: lowest to highest",n("trace-note").textContent=U||!e.steps?"":"deepest "+v+" of "+a+(t.bestLen?" · longest climb back "+$(t.bestLen):"")}(a),function(e){if("brk"===te&&"depth"===ne){var t,n=r*r,o=e.by,a=1;for(t=0;t<n;t++)o.dcalls[t]>a&&(a=o.dcalls[t]);for(t=0;t<n;t++){var s=ee[t],i=o.dacc[t]+o.drej[t],l=0===e.steps;s.t[2].textContent=l?"—":$(o.dcalls[t]),s.bar.style.width=(o.dcalls[t]/a*100).toFixed(1)+"%",s.t[4].textContent=l?"—":$(o.dacc[t]),s.t[5].textContent=l?"—":$(o.drej[t]),s.t[6].textContent=i?(o.dacc[t]/i*100).toFixed(1)+"%":"—",s.t[7].textContent=l?"—":$(o.ddead[t]),s.tr.className=e.done||U||t!==e.d?"":"now"}}}(a);for(var ze=1,Ae=1;Ae<=r;Ae++)a.by.calls[Ae]>ze&&(ze=a.by.calls[Ae]);for(var Pe=0;Pe<w.length;Pe++){var Re=w[Pe],Me=Re.v;Re.bar.style.width=(a.by.calls[Me]/ze*100).toFixed(1)+"%";var Ne=0===a.steps;Re.t[1].textContent=Ne?"—":$(a.by.calls[Me]),Re.t[3].textContent=Ne?"—":$(a.by.acc[Me]),Re.t[4].textContent=Ne?"—":$(a.by.rej[Me]);var Fe=a.by.acc[Me]+a.by.rej[Me];Re.t[5].textContent=Fe?(a.by.acc[Me]/Fe*100).toFixed(1)+"%":"—",Re.t[6].textContent=Ne?"—":$(a.by.dead[Me])}var De=n("log"),Ie=(p?"x":"")+(U?"e":"")+g.length+":"+(g.length?g[0].n+":"+g[g.length-1].n+":"+g[g.length-1].t:"");if(Ie===d);else if(g.length){var Ue="",He=5.5;for(Pe=0;Pe<g.length;Pe++){var qe=String(g[Pe].n).length+1;qe>He&&(He=qe)}De.style.setProperty("--nw",He+"ch");for(var Be=0;Be<g.length;Be++){var Oe=g[Be];Ue+='<li class="t'+Oe.t+'"><span class="n">'+Oe.n+'</span><span class="g" aria-hidden="true">'+ve[Oe.t]+"</span><span>"+(void 0!==Oe.text?Oe.text:me(Oe.snap,Oe.t)).replace(/&/g,"&amp;").replace(/</g,"&lt;")+"</span></li>"}De.innerHTML=Ue}else De.innerHTML='<li class="empty">'+(U?"Load a puzzle to begin.":"Press Step to see what the solver does and why.")+"</li>";Ie!==d&&(d=Ie,u&&(De.scrollTop=De.scrollHeight));var _e=a.done;if(n("b-back").disabled=U||0===a.steps||a.steps>t||"ff"===l,n("b-back").title=a.steps>t?"Too far in to replay":"",_e=_e||U,n("b-step").disabled=_e||"ff"===l,n("b-play").disabled=_e||"ff"===l,n("b-play").textContent="play"===l?"Pause":"Play",n("b-dead").disabled=_e||"play"===l,n("b-solve").disabled=_e||"play"===l,n("b-solve").textContent="ff"===l?"Stop":"Solve",n("b-dead").textContent="ff"===l&&S?"Stop":"Next dead end","ff"===l&&S&&(n("b-solve").disabled=!0),"ff"!==l||S||(n("b-dead").disabled=!0),n("b-save").disabled=0===a.steps||D||"ff"===l,n("b-reset").disabled=U,n("b-json").disabled=0===a.steps||"ff"===l,n("b-csv").disabled=0===a.steps||"ff"===l,n("b-share").disabled=U||m,n("b-share").title=m?"A link cannot carry a trace file":"Copy a link that reopens this puzzle, solving option and current step",n("b-jump").disabled=U||"ff"===l,n("jump").disabled=U||"ff"===l,n("b-compare").disabled=U||B.running,n("runbar").hidden="ff"!==l,"ff"===l){var Ye=n("run-prog");H?(n("run-text").textContent="Going to step "+$(H)+" · now at "+$(a.steps)+(z?" · "+z:""),Ye.classList.remove("indet"),n("run-fill").style.width=Math.min(100,a.steps/H*100).toFixed(1)+"%"):(n("run-text").textContent=(S?"Looking for the next dead end":"Solving")+" · "+$(a.steps)+" steps"+(z?" · "+z:""),Ye.classList.add("indet"),n("run-fill").style.width=""),n("run-cancel").hidden=q>t}}function ye(){M&&(P+=performance.now()-M,R+=o.stats().steps-N,M=0)}function ke(e){var t=e/1e3;if(t<10)return t.toFixed(2)+"s";if(t<60)return t.toFixed(1)+"s";var n=Math.floor(t/60),o=Math.floor(t%60);return n<60?n+"m "+(o<10?"0":"")+o+"s":Math.floor(n/60)+"h "+(n%60<10?"0":"")+n%60+"m"}function we(e){return 0===e?"0%":e<1e-4?"<0.01%":(100*e).toFixed(e<.1?2:1)+"%"}function xe(e){n("predict-msg").textContent=e}function Ce(){h=!1,n("predict-q").hidden=!0,xe("")}function Ee(e){if(h){h=!1,n("predict-q").hidden=!0;var t=o.step(!0);be(t),ge(),m.total++,e===t&&m.right++,xe((e===t?"Correct: ":"Not quite: ")+"the step was "+b[t]+". Score "+m.right+" of "+m.total+"."),n("b-step").disabled||n("b-step").focus()}}function Le(){Ce(),ye(),l="idle",H=0,cancelAnimationFrame(x),clearTimeout(L)}function Se(e){Le(),o&&o.release&&o.release(),o=X(),I++,g=[],0===e&&(P=0,R=0,m={right:0,total:0}),u=!0;var t=Math.max(0,e-200);for(t&&o.run(t,!1);o.stats().steps<e&&!o.stats().done;)be(o.step(!0));ge()}function je(){Le();var e=o.stats();if(f&&!e.done&&!e.pendingUndo&&e.steps<v)return h=!0,xe(""),n("predict-q").hidden=!1,void n("predict-q").querySelector("button").focus();be(o.step(!0)),ge()}function Te(){Le();var e=o.stats().steps-1;e>=0&&Se(e)}function ze(t){if("play"===l){var r=Math.min(t-C,100);C=t,E+=r/1e3*e[+n("speed").value];var a=Math.min(Math.floor(E),4e3);if(E-=Math.floor(E),a>0){a>8&&o.run(a-8,!1);for(var s=0;s<Math.min(a,8)&&!o.stats().done;s++)be(o.step(!0))}if(o.stats().done)return l="idle",void ge();ge(),x=requestAnimationFrame(ze)}}function Ae(){if("play"===l)return Le(),void ge();Le(),l="play",C=performance.now(),E=1,x=requestAnimationFrame(ze)}function Pe(){if("ff"===l){for(var e=performance.now(),t=!1;performance.now()-e<30&&!o.stats().done&&!t;){var n=2e4;if(H){var r=H-40-o.stats().steps;if(r<=0)break;n=Math.min(n,r)}t=o.run(n,S)}var a=o.stats(),i=performance.now();if(H&&!a.done&&!t&&a.steps>=H-40){for(g=[],u=!0;o.stats().steps<H&&!o.stats().done;)be(o.step(!0));return ye(),l="idle",H=0,void ge()}if(a.done||t)return H&&a.done&&a.steps<H&&Ye("The search finished at step "+$(a.steps)+", before step "+$(H)+"."),H=0,ye(),l="idle",t?g=[{n:a.steps,t:3,snap:a}]:a.done&&(g=[{n:a.steps,t:"solved"===a.status?1:3,text:"solved"===a.status?"Solved. Every clue matches.":"No solution. The search tried every possibility."}]),void ge();var c=(i-j)/1e3;z="trace"===s?"":$((a.steps-T)/Math.max(c,.001))+" steps/s · "+Math.round(c)+"s",i-A>90&&ge(),L=setTimeout(Pe,0)}}function Re(e){if("ff"===l)return Le(),void ge();Le(),l="ff",S=e,z="",H=0,j=performance.now(),T=o.stats().steps,q=T,M=j,N=T,ge(),L=setTimeout(Pe,0)}function Me(){if(!U&&"ff"!==l){var e,r,a=(e=n("jump").value,r=String(e).replace(/[,_\s]/g,""),/^\d{1,15}$/.test(r)?Number(r):null);if(null!==a){Ye("");var s=o.stats().steps;if(a!==s){Le();var i=s;if(a<s){if(a<=t)return void Se(a);Se(0)}o.stats().done||(l="ff",S=!1,z="",H=a,q=i,j=performance.now(),T=o.stats().steps,M=j,N=T,ge(),L=setTimeout(Pe,0))}}else Ye("Enter a step number, for example 1,000,000.")}}var Ne=[["row","Row by row"],["col","Column by column"],["brute","Brute force"],["fc","Forward checking"],["mrv","Fewest options first"],["pb","Propagation + backtracking"]];function Fe(e){return e.done&&("solved"===e.status||"nosolution"===e.status)}function De(){var e,t=B.items,o=1/0;for(e=0;e<t.length;e++)t[e].e&&Fe(t[e].e.stats())&&(o=Math.min(o,t[e].e.stats().steps));var r="";for(e=0;e<t.length;e++){var a,s=t[e],i="—",l="—",c="—",d="—",u="—",f="";if(s.e){var h=s.e.stats();if(i=$(h.steps),l=$(h.accepted),c=$(h.rejected),d=null===s.ms?"—":ke(s.ms),h.done&&!Fe(h))a="Trace ends";else if(h.done){a="solved"===h.status?"Solved":"No solution";var m=h.steps/o;u=1===m?"fewest":(m<10?m.toFixed(1):$(m))+"×",1===m&&o>0&&p&&(f=" best")}else a=B.running?"Running…":"Stopped"}else a="Skipped, too large";r+="<tr><td>"+s.name+"</td><td>"+a+'</td><td class="'+f.trim()+'">'+i+"</td><td>"+l+"</td><td>"+c+"</td><td>"+d+'</td><td class="spoil">'+u+"</td></tr>"}n("cmp-body").innerHTML=r,n("b-cmp-stop").hidden=!B.running,n("b-compare").disabled=U||B.running}function Ie(){B.running=!1,clearTimeout(B.timer),De()}function Ue(){if(B.running){for(var e=!1,t=0;t<B.items.length;t++){var n=B.items[t];if(n.e&&!n.e.stats().done){e=!0;for(var o=performance.now();performance.now()-o<12&&!n.e.stats().done;)n.e.run(5e3,!1);null!==n.ms&&(n.ms+=performance.now()-o)}}if(!e)return B.running=!1,void De();De(),B.timer=setTimeout(Ue,0)}}function He(){U||(Le(),Ie(),qe(),B.items=Ne.map(function(e){return{name:e[1],ms:0,e:("brute"===e[0]||"fc"===e[0]||"mrv"===e[0])&&r>=8||"pb"===e[0]&&r>=9?null:makeEngine(r,a,e[0])}}),J()&&B.items.unshift({name:"Your solver (trace)",ms:null,e:makeEngine(r,a,"trace",O)}),re("cmp"),n("panel-cmp").scrollIntoView({block:"nearest"}),n("cmp-note").textContent=r>=8?"Options that could not finish in any reasonable time on a puzzle this large are skipped. The others run side by side on their own copies of the puzzle.":"The options run side by side on their own copies of the puzzle, so the board above is not affected.",8===r&&(n("cmp-note").textContent+=" Propagation + backtracking usually finishes at this size, but on some puzzles it can take a long time. Stop stops all the options."),J()&&(n("cmp-note").textContent+=" Your solver is replayed from its trace, so it has no time."),B.running=!0,ge(),De(),B.timer=setTimeout(Ue,0))}function qe(){for(var e=0;e<B.items.length;e++){var t=B.items[e].e;t&&t.release&&t.release()}}var Be={1:"ACCEPT    ",2:"REJECT    ",3:"DEAD END  ",4:"UNDONE    "};function Oe(){return"trace"===s?"Your solver, replayed from "+(_||"a trace file"):"row"===s?"Row by row (tallest first)":"col"===s?"Column by column (tallest first)":"fc"===s?"Forward checking":"mrv"===s?"Fewest options first":"pb"===s?"Propagation + backtracking":"Brute force"}function _e(e,t){for(var n=String(e);n.length<t;)n=" "+n;return n}function Ye(e){n("save-note").textContent=e}function Ve(e,t,n){return new Promise(function(o,r){try{var a=URL.createObjectURL(new Blob([t],{type:(n||"text/plain")+";charset=utf-8"})),s=document.createElement("a");s.href=a,s.download=e,document.body.appendChild(s),s.click(),s.remove(),setTimeout(function(){URL.revokeObjectURL(a)},2e3),o({status:"saved"})}catch(e){r({code:"unavailable",message:String(e&&e.message||e)})}})}function Xe(){D||0===o.stats().steps||(D=!0,Ye("Preparing the log…"),ge(),function(e){var t=o.stats(),i=t.steps,l=I,c=Math.max(1,i-F+1),d=String(i).length,u="solved"===t.status?"solved":"nosolution"===t.status?"no solution":"in progress",f=["Skyscraper Step Visualizer log","Puzzle: "+r+"x"+r+", clues: "+a.join(" "),"Solving option: "+Oe(),"State: "+u+" at step "+$(i),"","Counters: accepted "+$(t.accepted)+", rejected "+$(t.rejected)+", dead ends "+$(t.deadEnds)+", undone "+$(t.undone)+", calls "+$(t.calls),"Acceptance rate: "+n("st-rate").textContent,"Placements still standing: "+n("st-stand").textContent,"Longest climb back: "+n("st-climb").textContent];"pb"===s&&f.push("Forced moves and guesses: "+n("st-forced").textContent),"trace"!==s&&f.push("Solve time: "+n("st-time").textContent);for(var h=p?document.querySelectorAll("#rules-list .st"):[],m=0;m<h.length;m++)f.push("Rejections, rule "+h[m].querySelector("dt").textContent+": "+h[m].querySelector("dd").textContent);f.push("","Board at this step ('.' = empty):");for(var v=0;v<r;v++){for(var b=[],g=0;g<r;g++){var y=o.grid[v*r+g];b.push(y||".")}f.push("  "+b.join(" "))}f.push("",1===c?"Steps 1 to "+$(i)+" (complete).":"Steps "+$(c)+" to "+$(i)+" (the last "+$(F)+"). Earlier steps are left out to keep the file a manageable size."),f.push("");var k=X(),w=0,x=[];!function t(){if(I!==l)return k.release&&k.release(),void e(null,i);for(var o=performance.now();w<c-1&&performance.now()-o<30;){var r=Math.min(2e5,c-1-w);k.run(r,!1),w+=r}if(w<c-1)return n("b-save").textContent="Preparing "+Math.floor(w/(c-1)*100)+"%",void setTimeout(t,0);for(var a=c;a<=i;a++){var s=k.step(!0);if(!s)break;x.push(_e(a,d)+"  "+Be[s]+me(k.stats(),s))}k.release&&k.release(),e(f.concat(x).join("\n")+"\n",i)}()}(function(e,t){if(n("b-save").textContent="Save log (.txt)",null===e)return D=!1,Ye("Log cancelled because the puzzle changed."),void ge();var o="skyscraper-"+r+"x"+r+"-"+s+"-step-"+t+".txt";Ve(o,e).then(function(){D=!1,Ye("Saved "+o+"."),ge()},function(e){D=!1,Ye("Could not save the log"+(e&&e.message?": "+e.message:".")),ge()})}))}var We={Size:"Everyday examples","Invalid input":"Invalid or unsolvable"};function Je(e){return 0===e.indexOf("Size ")?"Everyday examples":We[e]||e}function $e(e){var t=e.replace(/^\d\u00d7\d \u00b7 /,"");return/^[A-Z]\b/.test(t)?"Example "+t:t}function Ge(e){var t,o=n("preset");if(!e)return o.innerHTML='<option value="">Choose a size first</option>',o.disabled=!0,n("b-random").disabled=!0,void(n("b-random").title="Pick a size first");t='<option value="">Pick an example…</option>';for(var r=null,a=!1,s=0;s<PRESETS.length;s++)if(PRESETS[s].z===e){var i=Je(PRESETS[s].g);i!==r&&(null!==r&&(t+="</optgroup>"),r=i,t+='<optgroup label="'+i+'">'),t+='<option value="'+s+'">'+("bad"===e?PRESETS[s].label:$e(PRESETS[s].label))+"</option>",a=!0}null!==r&&(t+="</optgroup>"),a||(t='<option value="">No examples for this size</option>'),o.innerHTML=t,o.disabled=!a;var l="bad"!==e;n("b-random").disabled=!l,n("b-random").title=l?"Make a random puzzle of this size that always has a solution":"Random puzzles are not available for invalid or unsolvable puzzles"}function Ze(e){for(var t=[],n=0;n<r*r;n++){var o=e.by.dacc[n]+e.by.drej[n];t.push({depth:n+1,placing:ae(n),reached:e.by.dcalls[n],accepted:e.by.dacc[n],rejected:e.by.drej[n],acceptRate:o?e.by.dacc[n]/o:null,deadEnds:e.by.ddead[n]})}return t}function Ke(e){if(0!==o.stats().steps){var t,n,i,l=o.stats(),c=W().group.keys,d=function(){var e=o.stats(),t=performance.now();return{ms:P+(M?t-M:0),steps:R+(M?e.steps-N:0)}}(),u=r*r,f="skyscraper-"+r+"x"+r+"-"+s+"-step-"+l.steps+("json"===e?".json":"-breakdown.csv");if("json"===e){var h=[],m=l.accepted+l.rejected;for(t=0;t<c.length;t++){var v=c[t],b=l.by.acc[v]+l.by.rej[v];h.push({number:v,calls:l.by.calls[v],accepted:l.by.acc[v],rejected:l.by.rej[v],acceptRate:b?l.by.acc[v]/b:null,deadEnds:l.by.dead[v]})}var g=W().ruleInfo,y=[];for(t=0;t<g.length;t++)y.push({rule:t+1,name:g[t].name,rejections:l.rules[t+1]});var k="solved"===l.status?u:l.d;n=JSON.stringify({tool:"Skyscraper Step Visualizer",puzzle:{size:r,clues:a.slice()},solvingOption:s,traceFile:"trace"===s?_:void 0,state:"solved"===l.status?"solved":"nosolution"===l.status?"no solution":"in progress",counters:{steps:l.steps,accepted:l.accepted,rejected:l.rejected,deadEnds:l.deadEnds,undone:l.undone,calls:l.calls,removals:l.rejected+l.undone},statistics:{acceptanceRate:m?l.accepted/m:null,placementsStanding:k,placementsEverAccepted:l.accepted,buildingsStandingNow:k,deepestReached:"solved"===l.status?u:l.maxD,cells:u,longestClimbBack:l.longestClimb,solveTimeMs:Math.round(d.ms),solveTimeSteps:d.steps,stepsPerSecond:d.ms>0?Math.round(d.steps/(d.ms/1e3)):null},rejectionsByRule:p?y:void 0,breakdownByNumber:h,breakdownByDepth:Ze(l)},null,2)+"\n",i="application/json"}else{var w=["number,calls,accepted,rejected,accept_rate,dead_ends"];for(t=0;t<c.length;t++){var x=c[t],C=l.by.acc[x]+l.by.rej[x];w.push([x,l.by.calls[x],l.by.acc[x],l.by.rej[x],C?(l.by.acc[x]/C).toFixed(6):"",l.by.dead[x]].join(","))}n=w.join("\n")+"\n",i="text/csv"}Ve(f,n,i).then(function(){Ye("Saved "+f+".")},function(e){Ye("Could not save the file"+(e&&e.message?": "+e.message:"."))})}}function Qe(){if(!U){var e=function(){var e=location.href.split("#")[0],t=[];t.push("clues="+a.join("+")),t.push("order="+s);var n=o.stats().steps;return n>0&&t.push("step="+n),{url:e+"#"+t.join("&"),step:n}}();try{history.replaceState(null,"",e.url)}catch(e){}var t,r="Link copied: it reopens this puzzle and the "+Oe().toLowerCase()+" option"+(e.step?", at step "+$(e.step)+". Reset first to share just the puzzle.":".");(t=e.url,new Promise(function(e,n){function o(){try{var o=document.createElement("textarea");o.value=t,o.setAttribute("readonly",""),o.style.position="fixed",o.style.opacity="0",document.body.appendChild(o),o.select();var r=document.execCommand&&document.execCommand("copy");o.remove(),r?e():n()}catch(e){n(e)}}navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t).then(e,o):o()})).then(function(){n("share-note").textContent=r},function(){window.prompt("Copy this link:",e.url),n("share-note").textContent="Copy the link from the box that opened."})}}function et(e){n("err").textContent=e}function tt(e,t,o,i){var l,c,d=parseClues(e);return d.error?(et(d.error),!1):(et(""),Ie(),qe(),B.items=[],n("cmp-body").innerHTML="",n("cmp-note").textContent="Press the Compare button in the Simulation tab to run the options side by side on their own copies of the puzzle. The board is not affected.",Ye(""),U=!1,r=d.n,a=d.clues,i||"trace"!==s||J()||pe("row"),n("clues").value=a.join(" "),n("size-note").textContent=r+"×"+r+" puzzle, "+a.length+" clues"+(t?" · "+t:""),o||(l=r,c=n("size"),l>=1&&l<=9&&c.value!==String(l)&&(c.value=String(l),Ge(String(l)))),o||""===n("preset").value||(n("preset").value=""),nt(),Z(),Q(),le(),ue(),Se(0),re("sim"),!0)}function nt(){var e=J();n("f-trace").disabled=!e,n("f-trace-l").title=e?"Replay "+_:"Load a trace from your own solver first"+(O?" (the loaded one is for different clues)":""),n("b-compare").textContent=e?"Compare with your solver":"Compare all options",n("cmp-label").textContent=e?"Your solver and every built-in option on the current clues":"Every option on the current clues",n("b-compare").title=e?"Run the built-in options on these clues and put them next to your solver":"Run every option on these clues and compare the results"}function ot(e){if(e){n("trace-err").textContent="",n("trace-info").textContent="Reading "+e.name+"…";var t=e.size>Y,o=t?e.slice(0,Y):e;if(o.text)o.text().then(a,function(){n("trace-err").textContent="Could not read "+e.name+"."});else{var r=new FileReader;r.onload=function(){a(String(r.result))},r.onerror=function(){n("trace-err").textContent="Could not read "+e.name+"."},r.readAsText(o)}}function a(o){if(t){var r=o.lastIndexOf("\n");r>0&&(o=o.substring(0,r+1))}(function(e,t,o){var r=parseTrace(e,TRACE_MAX_EVENTS);if(r.error)return n("trace-err").textContent=t+": "+r.error,!1;n("trace-err").textContent="";var a=n("trace-style").value;return r.auto=r.style,"auto"!==a&&(r.style=a),o&&(r.truncated=!0,r.end||(r.end=3)),O=r,_=t,n("trace-info").textContent=function(e,t,n){var o=[t+": "+e.n+"×"+e.n+", "+$(e.count)+" events"];return e.truncated||n?o.push("showing the first part of a longer run"):0===e.end?o.push("no end line, so the solver may have been stopped"):3===e.end&&o.push("the solver stopped writing at its event limit"),1!==e.end||e.warnings.length||o.push(e.verdict?"reported solved, but "+e.verdict.charAt(0).toLowerCase()+e.verdict.slice(1):"your solver's final board is a valid solution"),o.join(" · ")+(e.warnings.length?". "+e.warnings.join(" "):".")}(r,t,o),n("trace-style-note").textContent=de[r.style]+("auto"===a?" (Chosen automatically: "+(r.reason||"single-cell puzzle")+".)":""),!!tt(r.clues.join(" "),t,!1,!0)&&(n("f-trace").disabled=!1,pe("trace"),nt(),Se(0),n("size-note").textContent=r.n+"×"+r.n+" puzzle · replaying "+t,re("sim"),!0)})(o,e.name,t)||(n("trace-info").textContent="")}}function rt(e){return e.dataTransfer&&Array.prototype.indexOf.call(e.dataTransfer.types||[],"Files")>=0}function at(){this.getBoundingClientRect().left+260>document.documentElement.clientWidth?this.setAttribute("data-r",""):this.removeAttribute("data-r")}function st(){p="on"===document.documentElement.getAttribute("data-explain"),n("explain").checked=p,n("explain").addEventListener("change",function(){var e=n("explain").checked;try{e?localStorage.setItem("sky-explain","1"):localStorage.removeItem("sky-explain")}catch(e){}!function(e){p=!!e;var t=document.documentElement;p?t.setAttribute("data-explain","on"):t.removeAttribute("data-explain"),n("explain").checked=p,o&&(ue(),le(),se(),B.items.length&&De(),ge())}(e)}),function(){for(var e=document.querySelectorAll(".term[data-g]"),t=0;t<e.length;t++){var n=document.getElementById("gl-"+e[t].getAttribute("data-g"));n&&(e[t].setAttribute("data-tip",n.textContent.trim()),e[t].setAttribute("aria-describedby",n.id),e[t].addEventListener("mouseenter",at),e[t].addEventListener("focus",at))}}(),function(){var e=["basics","gloss","try"];function t(t,o){for(var r=0;r<e.length;r++){var a=e[r]===t;n("ht-"+e[r]).setAttribute("aria-selected",a?"true":"false"),n("ht-"+e[r]).tabIndex=a?0:-1,n("hp-"+e[r]).hidden=!a}o&&n("ht-"+t).focus()}e.forEach(function(o,r){n("ht-"+o).addEventListener("click",function(){t(o)}),n("ht-"+o).addEventListener("keydown",function(n){var o="ArrowRight"===n.key?(r+1)%e.length:"ArrowLeft"===n.key?(r+e.length-1)%e.length:"Home"===n.key?0:"End"===n.key?e.length-1:-1;o>=0&&(n.preventDefault(),t(e[o],!0))})})}();for(var t=n("preset"),l=n("size"),c=0;c<PRESETS.length;c++)PRESETS[c].z="Invalid input"===PRESETS[c].g?"bad":String(PRESETS[c].s.split(/\s+/).length/4);for(var d='<option value="">Choose a size…</option>',b=1;b<=9;b++)d+='<option value="'+b+'">'+b+"×"+b+"</option>";d+='<option value="bad">Invalid or unsolvable</option>',l.innerHTML=d,l.addEventListener("change",function(){Ge(l.value),U&&l.value&&"bad"!==l.value&&function(e){r=e,a=[];for(var t=0;t<4*e;t++)a.push(1===e?1:2);Z(),Q(),le(),Se(0),n("size-note").textContent=""}(+l.value)}),Ge(""),n("b-random").addEventListener("click",function(){var e=+l.value;if(e){var n=function(e){var t=null,n=0;function o(e){for(var t=e.length-1;t>0;t--){var n=Math.floor(Math.random()*(t+1)),o=e[t];e[t]=e[n],e[n]=o}return e}var r=0;function a(t,n,s,i,l){if(n===e)return!0;for(var c=[],d=1;d<=e;d++)s[d]||i[n][d]||c.push(d);o(c);for(var u=0;u<c.length;u++){if(++r>2e5)return!1;var p=c[u];if(s[p]=!0,i[n][p]=!0,l[t*e+n]=p,a(t,n+1,s,i,l))return!0;s[p]=!1,i[n][p]=!1,l[t*e+n]=0}return!1}function s(){var t,n=[],o=[];for(t=0;t<e*e;t++)n.push(0);for(t=0;t<e;t++)o.push([]);return r=0,function t(s){if(s===e)return!0;for(var i=[],l=0;l<30;l++){for(var c=0;c<e;c++)n[s*e+c]=0;if(i.length=0,a(s,0,i,o,n)&&t(s+1))return!0;if(r>2e5)return!1;for(var d=0;d<e;d++){var u=n[s*e+d];u&&(o[d][u]=!1),n[s*e+d]=0}}return!1}(0)?n:null}for(;!t&&n++<50;)t=s();if(!t){var i=o(Array.apply(null,Array(e)).map(function(e,t){return t})),l=o(i.slice()),c=o(i.slice());t=[];for(var d=0;d<e;d++)for(var u=0;u<e;u++)t.push(c[(i[d]+l[u])%e]+1)}function p(t){for(var n=0,o=0,r=0;r<e;r++){var a=t(r);a>n&&(n=a,o++)}return o}var f,h=[];for(f=0;f<e;f++)h.push(p(function(n){return t[n*e+f]}));for(f=0;f<e;f++)h.push(p(function(n){return t[(e-1-n)*e+f]}));for(f=0;f<e;f++)h.push(p(function(n){return t[f*e+n]}));for(f=0;f<e;f++)h.push(p(function(n){return t[f*e+(e-1-n)]}));return h.join(" ")}(e);t.value="",tt(n,"random, always solvable")}}),t.addEventListener("change",function(){if(""!==t.value){var e=PRESETS[+t.value];n("clues").value=e.s,tt(e.s,"",!0)}}),n("load").addEventListener("click",function(){tt(n("clues").value)}),n("b-example").addEventListener("click",function(){n("clues").value="3 2 2 1 2 3 1 3 4 2 1 2 1 2 4 2",tt(n("clues").value)}),n("clues").addEventListener("keydown",function(e){"Enter"===e.key&&tt(n("clues").value)});for(var g=document.querySelectorAll('input[name="family"], input[name="dir"]'),y=0;y<g.length;y++)g[y].addEventListener("change",function(e){var t=e.target.value;pe("tall"===t?i:t),Se(0)});function k(e){n("keys-pop").hidden=!e,n("b-keys").setAttribute("aria-expanded",e?"true":"false")}var w,x;n("b-step").addEventListener("click",je),n("practice").addEventListener("change",function(){f=n("practice").checked,Ce(),m={right:0,total:0},f&&xe("Press Step, then guess what the solver does. Prompts stop after "+$(v)+" steps.")}),Array.prototype.forEach.call(n("predict-q").querySelectorAll("button"),function(e){e.addEventListener("click",function(){Ee(+e.getAttribute("data-g"))})}),n("b-back").addEventListener("click",Te),n("b-play").addEventListener("click",Ae),n("b-dead").addEventListener("click",function(){Re(!0)}),n("b-solve").addEventListener("click",function(){Re(!1)}),n("b-reset").addEventListener("click",function(){Se(0)}),n("b-save").addEventListener("click",Xe),n("speed").addEventListener("input",function(){n("speed-out").textContent=$(e[+n("speed").value])+" steps/s"}),n("speed-out").textContent=$(e[+n("speed").value])+" steps/s",n("b-keys").addEventListener("click",function(){k(n("keys-pop").hidden)}),document.addEventListener("click",function(e){n("keys-pop").hidden||e.target.closest(".keywrap")||k(!1)}),document.addEventListener("keydown",function(e){var t=e.target&&e.target.tagName;if("Escape"===e.key&&!n("keys-pop").hidden)return k(!1),void n("b-keys").focus();"?"===e.key&&"INPUT"!==t&&"SELECT"!==t&&"TEXTAREA"!==t&&(e.preventDefault(),k(n("keys-pop").hidden))}),document.addEventListener("keydown",function(e){var t=e.target&&e.target.tagName;if(!U)return!h||"1"!==e.key&&"2"!==e.key&&"3"!==e.key||"INPUT"===t||"SELECT"===t||"TEXTAREA"===t?void("INPUT"!==t&&"SELECT"!==t&&"BUTTON"!==t&&"TEXTAREA"!==t&&("ArrowRight"===e.key?(e.preventDefault(),o.stats().done||je()):"ArrowLeft"===e.key?(e.preventDefault(),n("b-back").disabled||Te()):" "===e.key&&(e.preventDefault(),o.stats().done||Ae()))):(e.preventDefault(),void Ee(+e.key))}),ue(),w=n("drop"),x=n("trace-file"),w.addEventListener("click",function(){x.click()}),w.addEventListener("keydown",function(e){"Enter"!==e.key&&" "!==e.key||(e.preventDefault(),x.click())}),x.addEventListener("change",function(){ot(x.files[0]),x.value=""}),document.addEventListener("dragover",function(e){rt(e)&&(e.preventDefault(),w.classList.add("over"))}),document.addEventListener("dragleave",function(e){e.relatedTarget||w.classList.remove("over")}),document.addEventListener("drop",function(e){rt(e)&&(e.preventDefault(),w.classList.remove("over"),n("tracebox").open=!0,re("puz"),ot(e.dataTransfer.files[0]))}),n("trace-style").addEventListener("change",function(){var e=n("trace-style").value;n("trace-style-note").textContent="auto"===e?"Automatic tests which checks the placements your solver kept obey: tallest first, then brute force, otherwise no guessing.":de[e],O&&(O.style="auto"===e?O.auto:e,"trace"===s&&(Q(),le(),ue(),Se(0)))}),n("trace-style-note").textContent="Automatic tests which checks the placements your solver kept obey: tallest first, then brute force, otherwise no guessing.",n("b-helper-h").addEventListener("click",function(){Ve("skytrace.h",HELPER_H,"text/x-chdr")}),n("b-helper-c").addEventListener("click",function(){Ve("skytrace.c",HELPER_C,"text/x-csrc")}),n("b-sample").addEventListener("click",function(){var e,t,n;Ve("sample-5x5.trace",(e=parseClues("4 2 3 1 2 1 2 2 3 2 3 4 2 2 1 2 1 3 2 2").clues,t=makeEngine(5,e,"row"),n=traceFromEngine(t,5,e,1e5),t.release&&t.release(),n),"text/plain")}),n("log").addEventListener("scroll",function(){var e=n("log");u=e.scrollHeight-e.scrollTop-e.clientHeight<12});for(var C=document.querySelectorAll('input[name="brk"]'),E=0;E<C.length;E++)C[E].addEventListener("change",function(e){ne=e.target.value,n("brk-v-num").hidden="num"!==ne,n("brk-v-depth").hidden="depth"!==ne,o&&ge()});oe.forEach(function(e,t){n("tab-"+e).addEventListener("click",function(){re(e)}),n("tab-"+e).addEventListener("keydown",function(e){var n="ArrowRight"===e.key?(t+1)%oe.length:"ArrowLeft"===e.key?(t+oe.length-1)%oe.length:"Home"===e.key?0:"End"===e.key?oe.length-1:-1;n>=0&&(e.preventDefault(),re(oe[n],!0))})}),n("b-jump").addEventListener("click",Me),n("jump").addEventListener("keydown",function(e){"Enter"===e.key&&Me()}),n("b-compare").addEventListener("click",He),n("b-share").addEventListener("click",Qe),n("b-json").addEventListener("click",function(){Ke("json")}),n("b-csv").addEventListener("click",function(){Ke("csv")}),n("b-cmp-stop").addEventListener("click",Ie),n("run-stop").addEventListener("click",function(){Le(),ge()}),n("run-cancel").addEventListener("click",function(){var e=q;Le(),Se(e)}),U=!0,r=4,a=[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],n("clues").value="",n("size-note").textContent="",Z(),Q(),le(),Se(0),function(){var e=location.hash.replace(/^#/,"");if(!e)return!1;var t=new URLSearchParams(e),o=t.get("clues");if(!o)return!1;var r=t.get("order");if("row"!==r&&"col"!==r&&"brute"!==r&&"fc"!==r&&"mrv"!==r&&"pb"!==r||pe(r),!tt(o,"from a shared link"))return!0;var a=t.get("step");a&&/^\d{1,15}$/.test(a)&&Number(a)>0&&(n("jump").value=a,Me())}(),function(){var e=n("theme"),t=document.documentElement;function o(){var e=document.querySelector('meta[name="theme-color"]');e&&e.setAttribute("content",getComputedStyle(t).getPropertyValue("--bg").trim()||"#edf0f3")}if(e.value=t.getAttribute("data-theme")||"auto",e.selectedIndex<0&&(e.value="auto"),e.addEventListener("change",function(){var n=e.value;"auto"===n?t.removeAttribute("data-theme"):t.setAttribute("data-theme",n);try{"auto"===n?localStorage.removeItem("sky-theme"):localStorage.setItem("sky-theme",n)}catch(e){}o()}),window.matchMedia){var r=window.matchMedia("(prefers-color-scheme: dark)");r.addEventListener&&r.addEventListener("change",o)}o()}()}("undefined"!=typeof WASM_READY?WASM_READY:Promise.resolve(!1)).then(function(){if(!builtinAvailable())return n("nowasm").hidden=!1,void(document.querySelector(".stage").hidden=!0);st()})}();
+(function () {
+	var SPEEDS = [1, 2, 4, 8, 15, 30, 60, 120, 300, 1000, 3000];
+	var MAX_REPLAY = 20000000;
+	function $(id) { return document.getElementById(id); }
+	var eng, N = 0, CL = [], mode = "idle";
+	var LOG_SHOW = 200, logKey = "", logStick = true;
+	var log = [], meta = [], cells = [], rows = [];
+	var raf = 0, playLast = 0, playAcc = 0, ffTimer = 0, ffStopDead = false;
+	var lastRender = 0;
+	var LOG_CAP = 100000, saving = false, epoch = 0;
+	var empty = true, ffTarget = 0, ffOrigin = 0;
+	var TR = null, traceName = "", MAX_FILE = 48 * 1024 * 1024;
+	/* A trace that says "solved" but leaves a board that breaks the rules or the clues. */
+	function badFinish(s) { return s.status === "solved" && !!TR && !!TR.verdict; }
+	function verdictText() { return TR.verdict.replace(/\.$/, "").replace(/^./, function (c) { return c.toLowerCase(); }); }
+	function mk() { return makeEngine(N, CL, TR); }
+	function emeta() { return engineMeta(N); }
+
+	function fmt(x) { return Math.round(x).toLocaleString("en-US"); }
+	/* Complete grids where every row and column holds each height once (Latin squares), for sizes 1 to 9. */
+	var GRIDS_TEXT = ["1", "2", "12", "576", "161,280", "812,851,200", "61,479,419,904,000", "108,776,032,459,082,956,800", "5,524,751,496,156,892,842,531,225,600"];
+	function searchSpace(n) {
+		return n + "\u00d7" + n + ": " + GRIDS_TEXT[n - 1] + (n === 1 ? " possible complete grid" : " possible complete grids");
+	}
+
+
+	/* ---------- board ---------- */
+	function buildBoard() {
+		var b = $("board"), cols = N + 2;
+		b.innerHTML = ""; cells = []; meta = [];
+		b.style.setProperty("--cols", cols);
+		for (var r = 0; r < cols; r++) {
+			for (var c = 0; c < cols; c++) {
+				var d = document.createElement("div");
+				var m = { kind: "corner" };
+				var inR = r > 0 && r < cols - 1, inC = c > 0 && c < cols - 1;
+				if (inR && inC) m = { kind: "in", r: r - 1, c: c - 1 };
+				else if (r === 0 && inC) m = { kind: "clue", line: c - 1, isCol: true, dir: 0 };
+				else if (r === cols - 1 && inC) m = { kind: "clue", line: c - 1, isCol: true, dir: 1 };
+				else if (c === 0 && inR) m = { kind: "clue", line: r - 1, isCol: false, dir: 0 };
+				else if (c === cols - 1 && inR) m = { kind: "clue", line: r - 1, isCol: false, dir: 1 };
+				d.className = "cell";
+				if (m.kind === "clue") {
+					m.idx = clueIndex(m.line, m.isCol, m.dir);
+					d.textContent = empty ? "" : CL[m.idx];
+					d.className = "cell clue";
+				}
+				b.appendChild(d); cells.push(d); meta.push(m);
+			}
+		}
+	}
+	function clueIndex(line, isCol, dir) {
+		if (isCol) return dir ? N + line : line;
+		return dir ? 3 * N + line : 2 * N + line;
+	}
+
+	function buildTable() {
+		var meta = emeta();
+		$("by-h0").textContent = meta.group.header;
+		$("by-caption").textContent = meta.group.caption;
+		var body = $("by-body"); body.innerHTML = ""; rows = [];
+		for (var q = 0; q < meta.group.keys.length; q++) {
+			var v = meta.group.keys[q];
+			var tr = document.createElement("tr");
+			tr.innerHTML = '<td class="num">' + meta.group.prefix + v + '</td><td></td><td class="share"><div class="bar"><i></i></div></td><td></td><td></td><td></td><td></td>';
+			body.appendChild(tr);
+			rows.push({ v: v, bar: tr.querySelector(".bar i"), t: tr.children });
+		}
+		buildDepthTable();
+	}
+	var drows = [], activeTab = "puz", brkView = "num";
+	var TABS = ["puz", "sim", "stats", "brk"];
+	function selectTab(name, focus) {
+		activeTab = name;
+		for (var i = 0; i < TABS.length; i++) {
+			var on = TABS[i] === name;
+			$("tab-" + TABS[i]).setAttribute("aria-selected", on ? "true" : "false");
+			$("tab-" + TABS[i]).tabIndex = on ? 0 : -1;
+			$("panel-" + TABS[i]).hidden = !on;
+		}
+		if (focus) $("tab-" + name).focus();
+		if (eng) render();
+	}
+	function depthLabel(d) {
+		return "Placement " + (d + 1);
+	}
+	function buildDepthTable() {
+		var body = $("depth-body"), total = N * N, h = [];
+		drows = [];
+		for (var d = 0; d < total; d++) {
+			h.push('<tr><td class="num">' + (d + 1) + '</td><td>' + depthLabel(d) + '</td><td></td><td class="share"><div class="bar"><i></i></div></td><td></td><td></td><td></td><td></td></tr>');
+		}
+		body.innerHTML = h.join("");
+		var trs = body.children;
+		for (var q = 0; q < trs.length; q++) drows.push({ tr: trs[q], bar: trs[q].querySelector(".bar i"), t: trs[q].children });
+	}
+	function renderDepth(s) {
+		if (activeTab !== "brk" || brkView !== "depth") return;
+		var total = N * N, b = s.by, maxC = 1, d;
+		for (d = 0; d < total; d++) if (b.dcalls[d] > maxC) maxC = b.dcalls[d];
+		for (d = 0; d < total; d++) {
+			var r = drows[d], tried = b.dacc[d] + b.drej[d], blank = s.steps === 0;
+			r.t[2].textContent = blank ? "\u2014" : fmt(b.dcalls[d]);
+			r.bar.style.width = (b.dcalls[d] / maxC * 100).toFixed(1) + "%";
+			r.t[4].textContent = blank ? "\u2014" : fmt(b.dacc[d]);
+			r.t[5].textContent = blank ? "\u2014" : fmt(b.drej[d]);
+			r.t[6].textContent = tried ? (b.dacc[d] / tried * 100).toFixed(1) + "%" : "\u2014";
+			r.t[7].textContent = blank ? "\u2014" : fmt(b.ddead[d]);
+			r.tr.className = !s.done && !empty && d === s.d ? "now" : "";
+		}
+	}
+	/* The depth-over-time strip under the board. */
+	function renderTrace(s) {
+		var tr = eng.trace(), W = 600, H = 72, total = N * N, steps = Math.max(1, s.steps);
+		function Y(v) { return (H - 3 - (v / total) * (H - 6)).toFixed(1); }
+		function X(st) { return (st / steps * W).toFixed(1); }
+		var nb = tr.n + (tr.curCnt > 0 ? 1 : 0), up = [], lo = [], avg = [], i, svg = "";
+		var md = s.maxD;
+		for (i = 0; i < nb; i++) {
+			var part = i >= tr.n;
+			var mn = part ? tr.curMin : tr.min[i], mx = part ? tr.curMax : tr.max[i];
+			var cnt = part ? tr.curCnt : tr.size;
+			var av = (part ? tr.curSum : tr.sum[i]) / cnt;
+			var x0 = i * tr.size, x1 = Math.min((i + 1) * tr.size, steps), xc = X((x0 + x1) / 2);
+			up.push(xc + "," + Y(mx)); lo.push(xc + "," + Y(mn)); avg.push(xc + "," + Y(av));
+		}
+		if (tr.bestLen > 0) {
+			var cx0 = +X(tr.bestStart), cw = Math.max(2, +X(tr.bestEnd) - cx0);
+			svg += '<rect x="' + cx0 + '" y="0" width="' + cw.toFixed(1) + '" height="' + H + '" style="fill:var(--undo-soft)"><title>Longest climb back: ' + fmt(tr.bestLen) + ' placements undone in a row, steps ' + fmt(tr.bestStart) + " to " + fmt(tr.bestEnd) + "</title></rect>";
+		}
+		if (md > 0) svg += '<line x1="0" x2="' + W + '" y1="' + Y(md) + '" y2="' + Y(md) + '" stroke-dasharray="4 4" style="stroke:var(--muted)" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+		/* Slices of more than one step: a soft band from the lowest to the highest depth in the slice, with the average depth as the line. */
+		if (nb && tr.size > 1) svg += '<polygon points="' + up.join(" ") + " " + lo.slice().reverse().join(" ") + '" style="fill:var(--accent);fill-opacity:0.22;stroke:none"/>';
+		if (nb) svg += '<polyline points="' + avg.join(" ") + '" fill="none" style="stroke:var(--accent)" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>';
+		$("trace").innerHTML = svg;
+		$("trace-end").textContent = empty ? "" : "step " + fmt(s.steps);
+		$("trace-key").textContent = empty || tr.size < 2 ? "" : "line: average \u00b7 band: lowest to highest";
+		$("trace-note").textContent = empty || !s.steps ? "" : "deepest " + md + " of " + total + (tr.bestLen ? " \u00b7 longest climb back " + fmt(tr.bestLen) : "");
+	}
+	function buildRules() {
+		$("ts-acc").textContent = "Placed and kept: your solver went on to build from it.";
+		$("ts-rej").textContent = "Placed and taken out again at once.";
+		$("ts-dead").textContent = "Nothing left to try at this point, worked out from your trace. Each one makes the solver undo the placement before it.";
+	}
+	function updateOptNote() {
+		if (!TR) { $("opt-note").textContent = ""; return; }
+		$("opt-note").textContent = "Replaying " + (traceName || "your trace") + ". Nothing is solved here: every placement and removal comes from your file.";
+	}
+
+	function describeTrace(s, t, L, rc) {
+		if (t === 1) {
+			if (s.done && s.status === "solved") return "Placed " + L.num + " at " + rc + ". Last cell filled: solved.";
+			return "Placed " + L.num + " at " + rc + ".";
+		}
+		if (t === 2) {
+			return "Rejected " + L.num + " at " + rc + ". Your solver took it out again at once.";
+		}
+		if (t === 3) {
+			return "Dead end: your solver had nothing more to try here." +
+				(s.status === "nosolution" ? " Nothing left to undo, so there is no solution." : " Backing up.");
+		}
+		return "Undone: " + L.num + " removed from " + rc + ".";
+	}
+	function describe(s, t) {
+		var L = s.last, rc = "row " + (L.r + 1) + ", column " + (L.c + 1);
+		return describeTrace(s, t, L, rc);
+	}
+	var GLYPH = { 1: "✓", 2: "✕", 3: "⊘", 4: "↶" };
+	function pushLog(t) {
+		if (!t) return;
+		var s = eng.stats();
+		log.push({ n: s.steps, t: t, snap: s });
+		if (log.length > LOG_SHOW) log.shift();
+	}
+
+	/* ---------- render ---------- */
+	function render() {
+		lastRender = performance.now();
+		var s = eng.stats(), g = eng.grid, L = s.last;
+		var total = N * N;
+		for (var i = 0; i < cells.length; i++) {
+			var m = meta[i], el = cells[i];
+			if (m.kind === "in") {
+				var v = g[m.r * N + m.c], cls2 = "cell in", txt = v ? String(v) : "";
+				var isLast = L.type && L.r === m.r && L.c === m.c && (L.type !== 3);
+				if (isLast) {
+					if (L.type === 1) cls2 += " evok";
+					else if (L.type === 2) { cls2 += " evrej"; if (!v) { cls2 += " ghost"; txt = String(L.num); } }
+					else if (L.type === 4) { cls2 += " evundo"; if (!v) { cls2 += " ghost"; txt = String(L.num); } }
+				}
+				if (el.className !== cls2) el.className = cls2;
+				if (el.textContent !== txt) el.textContent = txt;
+				el.style.setProperty("--h", v ? (v / N).toFixed(3) : "0");
+			}
+		}
+		$("board").classList.toggle("solved", s.status === "solved" && !badFinish(s));
+		$("board").classList.toggle("invalid", badFinish(s));
+		// status
+		var st;
+		if (empty) st = "No puzzle loaded";
+		else if (s.status === "cut") st = (TR.truncated ? "Showing the first part of a longer run" : "The trace ends here") + " \u00b7 " + fmt(s.steps) + " steps";
+		else if (badFinish(s)) st = "Trace says solved, but " + verdictText() + " \u00b7 " + fmt(s.steps) + " steps";
+		else if (s.status === "solved") st = "Solved in " + fmt(s.steps) + " steps";
+		else if (s.status === "nosolution") st = "No solution, found after " + fmt(s.steps) + " steps";
+		else if (mode === "ff") st = "Fast-forwarding…";
+		else st = "Replaying your solver \u00b7 " + s.d + " of " + total + " standing" + (s.pendingUndo ? " (backing up)" : "");
+		if (!empty && s.done) st += " (" + fmt(TR.count) + " events in your file)";
+		$("status").textContent = st;
+		$("rate").textContent = "";
+		// counters
+		$("c-acc").textContent = fmt(s.accepted);
+		$("c-rej").textContent = fmt(s.rejected);
+		$("c-dead").textContent = fmt(s.deadEnds);
+		$("c-steps").textContent = fmt(s.steps);
+		$("c-calls").textContent = empty ? "0" : fmt(s.calls);
+		$("c-rem").textContent = fmt(s.rejected + s.undone);
+		var depth = s.d;
+		$("depth-fill").style.width = (depth / total * 100).toFixed(1) + "%";
+		$("depth-text").textContent = empty ? "" : depth + " of " + total + " standing · deepest so far " + s.maxD;
+		if (empty) $("depth-fill").style.width = "0%";
+		$("space-text").textContent = empty ? "" : searchSpace(N);
+		// statistics
+		var attempts = s.accepted + s.rejected;
+		$("st-rate").textContent = attempts ? (s.accepted / attempts * 100).toFixed(1) + "%" : "\u2014";
+		var standing = s.d;
+		$("st-stand").textContent = s.accepted ? fmt(standing) + " of " + fmt(s.accepted) + " \u00b7 " + pct(standing / s.accepted) : "\u2014";
+		$("st-climb").textContent = s.steps === 0 ? "\u2014" : fmt(s.longestClimb) + (s.longestClimb === 1 ? " placement" : " placements");
+		renderTrace(s);
+		renderDepth(s);
+		// by-number table
+		var maxCalls = 1;
+		for (var v2 = 1; v2 <= N; v2++) if (s.by.calls[v2] > maxCalls) maxCalls = s.by.calls[v2];
+		for (var q = 0; q < rows.length; q++) {
+			var rw = rows[q], n2 = rw.v;
+			rw.bar.style.width = (s.by.calls[n2] / maxCalls * 100).toFixed(1) + "%";
+			var blank = s.steps === 0;
+			rw.t[1].textContent = blank ? "\u2014" : fmt(s.by.calls[n2]);
+			rw.t[3].textContent = blank ? "\u2014" : fmt(s.by.acc[n2]);
+			rw.t[4].textContent = blank ? "\u2014" : fmt(s.by.rej[n2]);
+			var tried = s.by.acc[n2] + s.by.rej[n2];
+			rw.t[5].textContent = tried ? (s.by.acc[n2] / tried * 100).toFixed(1) + "%" : "\u2014";
+			rw.t[6].textContent = blank ? "\u2014" : fmt(s.by.dead[n2]);
+		}
+		// log
+		var ol = $("log");
+		var key = (empty ? "e" : "") + log.length + ":" + (log.length ? log[0].n + ":" + log[log.length - 1].n + ":" + log[log.length - 1].t : "");
+		if (key === logKey) { /* log unchanged */ }
+		else if (!log.length) ol.innerHTML = '<li class="empty">' + (empty ? "Load a puzzle to begin." : "Press Step to see what the solver does.") + "</li>";
+		else {
+			var h = "", nw = 5.5;
+			for (var q = 0; q < log.length; q++) { var w = String(log[q].n).length + 1; if (w > nw) nw = w; }
+			ol.style.setProperty("--nw", nw + "ch");
+			for (var j = 0; j < log.length; j++) {
+				var e = log[j];
+				h += '<li class="t' + e.t + '"><span class="n">' + e.n + '</span><span class="g" aria-hidden="true">' + GLYPH[e.t] + "</span><span>" + (e.text !== undefined ? e.text : describe(e.snap, e.t)).replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</span></li>";
+			}
+			ol.innerHTML = h;
+		}
+		if (key !== logKey) { logKey = key; if (logStick) ol.scrollTop = ol.scrollHeight; }
+		// buttons
+		var fin = s.done;
+		$("b-back").disabled = empty || s.steps === 0 || s.steps > MAX_REPLAY || mode === "ff";
+		$("b-back").title = s.steps > MAX_REPLAY ? "Too far in to replay" : "";
+		fin = fin || empty;
+		$("b-step").disabled = fin || mode === "ff";
+		$("b-play").disabled = fin || mode === "ff";
+		$("b-play").textContent = mode === "play" ? "Pause" : "Play";
+		$("b-dead").disabled = fin || mode === "play";
+		$("b-solve").disabled = fin || mode === "play";
+		$("b-solve").textContent = mode === "ff" ? "Stop" : "Solve";
+		$("b-dead").textContent = mode === "ff" && ffStopDead ? "Stop" : "Next dead end";
+		if (mode === "ff" && ffStopDead) $("b-solve").disabled = true;
+		if (mode === "ff" && !ffStopDead) $("b-dead").disabled = true;
+		$("b-save").disabled = s.steps === 0 || saving || mode === "ff";
+		$("b-reset").disabled = empty;
+		$("b-json").disabled = s.steps === 0 || mode === "ff";
+		$("b-csv").disabled = s.steps === 0 || mode === "ff";
+		$("b-jump").disabled = empty || mode === "ff";
+		$("jump").disabled = empty || mode === "ff";
+		// progress bar for Solve, Next dead end and Go to step
+		var rb = $("runbar");
+		rb.hidden = mode !== "ff";
+		if (mode === "ff") {
+			var prog = $("run-prog");
+			if (ffTarget) {
+				$("run-text").textContent = "Going to step " + fmt(ffTarget) + " \u00b7 now at " + fmt(s.steps);
+				prog.classList.remove("indet");
+				$("run-fill").style.width = Math.min(100, s.steps / ffTarget * 100).toFixed(1) + "%";
+			} else {
+				$("run-text").textContent = (ffStopDead ? "Looking for the next dead end" : "Solving") + " \u00b7 " + fmt(s.steps) + " steps";
+				prog.classList.add("indet");
+				$("run-fill").style.width = "";
+			}
+			$("run-cancel").hidden = ffOrigin > MAX_REPLAY;
+		}
+	}
+
+	/* ---------- running ---------- */
+	function pct(x) {
+		if (x === 0) return "0%";
+		if (x < 0.0001) return "<0.01%";
+		return (x * 100).toFixed(x < 0.1 ? 2 : 1) + "%";
+	}
+	function stopAll() {
+		mode = "idle"; ffTarget = 0;
+		cancelAnimationFrame(raf); clearTimeout(ffTimer);
+	}
+	function seek(target) {
+		stopAll();
+		if (eng && eng.release) eng.release();
+		eng = mk();
+		epoch++;
+		log = [];
+		logStick = true;
+		var pre = Math.max(0, target - LOG_SHOW);
+		if (pre) eng.run(pre, false);
+		while (eng.stats().steps < target && !eng.stats().done) pushLog(eng.step(true));
+		render();
+	}
+	function doStep() {
+		stopAll();
+		pushLog(eng.step(true)); render();
+	}
+	function doBack() {
+		stopAll();
+		var t = eng.stats().steps - 1;
+		if (t >= 0) seek(t);
+	}
+	function playFrame(ts) {
+		if (mode !== "play") return;
+		var dt = Math.min(ts - playLast, 100); playLast = ts;
+		playAcc += dt / 1000 * SPEEDS[+$("speed").value];
+		var k = Math.min(Math.floor(playAcc), 4000); playAcc -= Math.floor(playAcc);
+		if (k > 0) {
+			if (k > 8) eng.run(k - 8, false);
+			for (var i = 0; i < Math.min(k, 8) && !eng.stats().done; i++) pushLog(eng.step(true));
+		}
+		if (eng.stats().done) { mode = "idle"; render(); return; }
+		render();
+		raf = requestAnimationFrame(playFrame);
+	}
+	function togglePlay() {
+		if (mode === "play") { stopAll(); render(); return; }
+		stopAll(); mode = "play"; playLast = performance.now(); playAcc = 1;
+		raf = requestAnimationFrame(playFrame);
+	}
+	function ffTick() {
+		if (mode !== "ff") return;
+		var t0 = performance.now(), hit = false;
+		while (performance.now() - t0 < 30 && !eng.stats().done && !hit) {
+			var k = 20000;
+			if (ffTarget) {
+				var left = ffTarget - 40 - eng.stats().steps;
+				if (left <= 0) break;
+				k = Math.min(k, left);
+			}
+			hit = eng.run(k, ffStopDead);
+		}
+		var s = eng.stats(), now = performance.now();
+		if (ffTarget && !s.done && !hit && s.steps >= ffTarget - 40) {
+			log = []; logStick = true;
+			while (eng.stats().steps < ffTarget && !eng.stats().done) pushLog(eng.step(true));
+			mode = "idle"; ffTarget = 0;
+			render(); return;
+		}
+		if (s.done || hit) {
+			if (ffTarget && s.done && s.steps < ffTarget) note("The search finished at step " + fmt(s.steps) + ", before step " + fmt(ffTarget) + ".");
+			ffTarget = 0;
+			mode = "idle";
+			if (hit) { log = [{ n: s.steps, t: 3, snap: s }]; }
+			else if (s.done) {
+				log = [{ n: s.steps, t: s.status === "solved" && !badFinish(s) ? 1 : s.status === "cut" ? 4 : 3,
+					text: badFinish(s) ? "The trace says solved, but " + verdictText() + "."
+						: s.status === "solved" ? "Solved. Every clue matches."
+						: s.status === "cut" ? "The trace ends here." : "No solution. The search tried every possibility." }];
+			}
+			render(); return;
+		}
+		if (now - lastRender > 90) render();
+		ffTimer = setTimeout(ffTick, 0);
+	}
+	function startFF(stopDead) {
+		if (mode === "ff") { stopAll(); render(); return; }
+		stopAll(); mode = "ff"; ffStopDead = stopDead; ffTarget = 0;
+		ffOrigin = eng.stats().steps;
+		render(); ffTimer = setTimeout(ffTick, 0);
+	}
+
+	/* ---------- go to a step ---------- */
+	function parseStepNo(txt) {
+		var t = String(txt).replace(/[,_\s]/g, "");
+		if (!/^\d{1,15}$/.test(t)) return null;
+		return Number(t);
+	}
+	function doJump() {
+		if (empty || mode === "ff") return;
+		var v = parseStepNo($("jump").value);
+		if (v === null) { note("Enter a step number, for example 1,000,000."); return; }
+		note("");
+		var cur = eng.stats().steps;
+		if (v === cur) return;
+		stopAll();
+		var origin = cur;
+		if (v < cur) {
+			if (v <= MAX_REPLAY) { seek(v); return; }
+			seek(0);
+		}
+		if (eng.stats().done) { return; }
+		mode = "ff"; ffStopDead = false; ffTarget = v; ffOrigin = origin;
+		render(); ffTimer = setTimeout(ffTick, 0);
+	}
+
+	/* ---------- save the log as a text file ---------- */
+	var TAGS = { 1: "ACCEPT    ", 2: "REJECT    ", 3: "DEAD END  ", 4: "UNDONE    " };
+	function optionName() {
+		return "Your solver, from " + (traceName || "a trace file");
+	}
+	function pad(n, w) { var s = String(n); while (s.length < w) s = " " + s; return s; }
+	function note(msg) { $("save-note").textContent = msg; }
+	/* Replays the puzzle from step 0 (the solver is deterministic) and writes one
+		 line per step, for the last LOG_CAP steps up to where the run stands now. */
+	function buildLogText(finish) {
+		var s0 = eng.stats(), target = s0.steps, myEpoch = epoch;
+		var start = Math.max(1, target - LOG_CAP + 1), w = String(target).length;
+		var state = badFinish(s0) ? "trace says solved, but the final board is wrong" : s0.status === "solved" ? "solved" : s0.status === "nosolution" ? "no solution" : "in progress";
+		var head = [
+			"Skyscraper Step Visualizer log",
+			"Puzzle: " + N + "x" + N + ", clues: " + CL.join(" "),
+			"Replaying: " + optionName(),
+			"State: " + state + " at step " + fmt(target),
+			"",
+			"Counters: accepted " + fmt(s0.accepted) + ", rejected " + fmt(s0.rejected) + ", dead ends " + fmt(s0.deadEnds) +
+				", undone " + fmt(s0.undone) + ", calls " + fmt(s0.calls),
+			"Acceptance rate: " + $("st-rate").textContent,
+			"Placements still standing: " + $("st-stand").textContent,
+			"Longest climb back: " + $("st-climb").textContent
+		];
+		head.push("", "Board at this step ('.' = empty):");
+		for (var r = 0; r < N; r++) {
+			var row = [];
+			for (var c = 0; c < N; c++) { var v = eng.grid[r * N + c]; row.push(v ? v : "."); }
+			head.push("  " + row.join(" "));
+		}
+		head.push("", start === 1
+			? "Steps 1 to " + fmt(target) + " (complete)."
+			: "Steps " + fmt(start) + " to " + fmt(target) + " (the last " + fmt(LOG_CAP) + "). Earlier steps are left out to keep the file a manageable size.");
+		head.push("");
+		var e2 = mk(), skipped = 0, lines = [];
+		function chunk() {
+			if (epoch !== myEpoch) { if (e2.release) e2.release(); finish(null, target); return; }
+			var t0 = performance.now();
+			while (skipped < start - 1 && performance.now() - t0 < 30) {
+				var k = Math.min(200000, start - 1 - skipped);
+				e2.run(k, false); skipped += k;
+			}
+			if (skipped < start - 1) {
+				$("b-save").textContent = "Preparing " + Math.floor(skipped / (start - 1) * 100) + "%";
+				setTimeout(chunk, 0); return;
+			}
+			for (var n = start; n <= target; n++) {
+				var t = e2.step(true);
+				if (!t) break;
+				lines.push(pad(n, w) + "  " + TAGS[t] + describe(e2.stats(), t));
+			}
+			if (e2.release) e2.release();
+			finish(head.concat(lines).join("\n") + "\n", target);
+		}
+		chunk();
+	}
+	/* Plain browser download (Blob + temporary link). */
+	function saveFile(name, text, mime) {
+		return new Promise(function (resolve, reject) {
+			try {
+				var url = URL.createObjectURL(new Blob([text], { type: (mime || "text/plain") + ";charset=utf-8" }));
+				var a = document.createElement("a");
+				a.href = url; a.download = name;
+				document.body.appendChild(a); a.click(); a.remove();
+				setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+				resolve({ status: "saved" });
+			} catch (e) { reject({ code: "unavailable", message: String(e && e.message || e) }); }
+		});
+	}
+	function saveLog() {
+		if (saving || eng.stats().steps === 0) return;
+		saving = true; note("Preparing the log…"); render();
+		buildLogText(function (text, target) {
+			$("b-save").textContent = "Save log (.txt)";
+			if (text === null) { saving = false; note("Log cancelled because the puzzle changed."); render(); return; }
+			var name = "skyscraper-" + N + "x" + N + "-trace-step-" + target + ".txt";
+			saveFile(name, text).then(function () {
+				saving = false; note("Saved " + name + "."); render();
+			}, function (err) {
+				saving = false;
+				note("Could not save the log" + (err && err.message ? ": " + err.message : "."));
+				render();
+			});
+		});
+	}
+
+	/* ---------- size picker, examples and random puzzles ---------- */
+	/* A random Latin square (no repeat in any row or column), then the clues it gives. */
+	function randomPuzzle(n) {
+		var sq = null, tries = 0;
+		function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
+		var nodes = 0;
+		function fillRow(r, c, rowUsed, colUsed, g) {
+			if (c === n) return true;
+			var cand = [];
+			for (var v = 1; v <= n; v++) if (!rowUsed[v] && !colUsed[c][v]) cand.push(v);
+			shuffle(cand);
+			for (var k = 0; k < cand.length; k++) {
+				if (++nodes > 200000) return false;
+				var v2 = cand[k];
+				rowUsed[v2] = true; colUsed[c][v2] = true; g[r * n + c] = v2;
+				if (fillRow(r, c + 1, rowUsed, colUsed, g)) return true;
+				rowUsed[v2] = false; colUsed[c][v2] = false; g[r * n + c] = 0;
+			}
+			return false;
+		}
+		function build() {
+			var g = [], colUsed = [], i;
+			for (i = 0; i < n * n; i++) g.push(0);
+			for (i = 0; i < n; i++) { colUsed.push([]); }
+			nodes = 0;
+			function rows(r) {
+				if (r === n) return true;
+				var rowUsed = [];
+				for (var attempt = 0; attempt < 30; attempt++) {
+					for (var c = 0; c < n; c++) { g[r * n + c] = 0; }
+					rowUsed.length = 0;
+					if (fillRow(r, 0, rowUsed, colUsed, g) && rows(r + 1)) return true;
+					if (nodes > 200000) return false;
+					for (var c2 = 0; c2 < n; c2++) { var v = g[r * n + c2]; if (v) colUsed[c2][v] = false; g[r * n + c2] = 0; }
+				}
+				return false;
+			}
+			return rows(0) ? g : null;
+		}
+		while (!sq && tries++ < 50) sq = build();
+		if (!sq) { // fallback: shuffled cyclic square
+			var pr = shuffle(Array.apply(null, Array(n)).map(function (_, i) { return i; })), pc = shuffle(pr.slice()), ps = shuffle(pr.slice());
+			sq = []; for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) sq.push(ps[(pr[r] + pc[c]) % n] + 1);
+		}
+		function seen(get) { var m = 0, k = 0; for (var i = 0; i < n; i++) { var v = get(i); if (v > m) { m = v; k++; } } return k; }
+		var cl = [], i2;
+		for (i2 = 0; i2 < n; i2++) cl.push(seen(function (r) { return sq[r * n + i2]; }));
+		for (i2 = 0; i2 < n; i2++) cl.push(seen(function (r) { return sq[(n - 1 - r) * n + i2]; }));
+		for (i2 = 0; i2 < n; i2++) cl.push(seen(function (c) { return sq[i2 * n + c]; }));
+		for (i2 = 0; i2 < n; i2++) cl.push(seen(function (c) { return sq[i2 * n + (n - 1 - c)]; }));
+		return cl.join(" ");
+	}
+
+	/* ---------- export statistics ---------- */
+	function depthRows(s) {
+		var out = [];
+		for (var d = 0; d < N * N; d++) {
+			var tried = s.by.dacc[d] + s.by.drej[d];
+			out.push({ depth: d + 1, placing: depthLabel(d), reached: s.by.dcalls[d], accepted: s.by.dacc[d], rejected: s.by.drej[d],
+				acceptRate: tried ? s.by.dacc[d] / tried : null, deadEnds: s.by.ddead[d] });
+		}
+		return out;
+	}
+	function exportStats(kind) {
+		if (eng.stats().steps === 0) return;
+		var s = eng.stats(), g = emeta().group, keys = g.keys, total = N * N, i;
+		var name = "skyscraper-" + N + "x" + N + "-trace-step-" + s.steps + (kind === "json" ? ".json" : "-breakdown.csv");
+		var text, mime;
+		if (kind === "json") {
+			var by = [], att = s.accepted + s.rejected;
+			for (i = 0; i < keys.length; i++) {
+				var v = keys[i], tried = s.by.acc[v] + s.by.rej[v];
+				by.push({ number: v, calls: s.by.calls[v], accepted: s.by.acc[v], rejected: s.by.rej[v],
+					acceptRate: tried ? s.by.acc[v] / tried : null, deadEnds: s.by.dead[v] });
+			}
+			var standing = s.d;
+			text = JSON.stringify({
+				tool: "Skyscraper Step Visualizer",
+				puzzle: { size: N, clues: CL.slice() },
+				traceFile: traceName,
+				state: badFinish(s) ? "trace says solved, but the final board is wrong" : s.status === "solved" ? "solved" : s.status === "nosolution" ? "no solution" : "in progress",
+				counters: { steps: s.steps, accepted: s.accepted, rejected: s.rejected, deadEnds: s.deadEnds,
+					undone: s.undone, calls: s.calls, removals: s.rejected + s.undone },
+				statistics: {
+					acceptanceRate: att ? s.accepted / att : null,
+					placementsStanding: standing, placementsEverAccepted: s.accepted,
+					buildingsStandingNow: standing, deepestReached: s.maxD, cells: total,
+					longestClimbBack: s.longestClimb
+				},
+				breakdownByNumber: by,
+				breakdownByDepth: depthRows(s)
+			}, null, 2) + "\n";
+			mime = "application/json";
+		} else {
+			var rows2 = ["number,calls,accepted,rejected,accept_rate,dead_ends"];
+			for (i = 0; i < keys.length; i++) {
+				var w = keys[i], tr = s.by.acc[w] + s.by.rej[w];
+				rows2.push([w, s.by.calls[w], s.by.acc[w], s.by.rej[w], tr ? (s.by.acc[w] / tr).toFixed(6) : "", s.by.dead[w]].join(","));
+			}
+			text = rows2.join("\n") + "\n";
+			mime = "text/csv";
+		}
+		saveFile(name, text, mime).then(function () { note("Saved " + name + "."); },
+			function (err) { note("Could not save the file" + (err && err.message ? ": " + err.message : ".")); });
+	}
+
+	/* ---------- shareable link ---------- */
+	function copyText(text) {
+		return new Promise(function (resolve, reject) {
+			function fallback() {
+				try {
+					var ta = document.createElement("textarea");
+					ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+					document.body.appendChild(ta); ta.select();
+					var ok = document.execCommand && document.execCommand("copy");
+					ta.remove();
+					ok ? resolve() : reject();
+				} catch (e) { reject(e); }
+			}
+			if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(resolve, fallback);
+			else fallback();
+		});
+	}
+
+	/* ---------- loading ---------- */
+	function loadPuzzle(n, clues, tag) {
+		note("");
+		empty = false;
+		N = n; CL = clues;
+		$("size-note").textContent = N + "×" + N + " puzzle, " + CL.length + " clues" + (tag ? " \u00b7 " + tag : "");
+		buildBoard(); buildTable(); buildRules(); updateOptNote(); seek(0);
+		selectTab("sim");
+	}
+
+	/* ---------- traces from your own solver ---------- */
+	function traceInfoText(p, name, fileCut) {
+		var bits = [name + ": " + p.n + "\u00d7" + p.n + ", " + fmt(p.count) + " events"];
+		if (p.truncated || fileCut) bits.push("showing the first part of a longer run");
+		else if (p.end === 0) bits.push("no end line, so the solver may have been stopped");
+		else if (p.end === 3) bits.push("the trace was cut off here, so it is a partial run");
+		if (p.end === 1 && !p.warnings.length) {
+			bits.push(p.verdict ? "reported solved, but " + p.verdict.replace(/\.$/, "").replace(/^./, function (c) { return c.toLowerCase(); }) : "your solver's final board is a valid solution");
+		}
+		return bits.join(" \u00b7 ") + (p.warnings.length ? ". " + p.warnings.join(" ") : ".");
+	}
+	function loadTraceText(text, name, fileCut) {
+		var p = parseTrace(text, TRACE_MAX_EVENTS);
+		if (p.error) { $("trace-err").textContent = name + ": " + p.error; return false; }
+		$("trace-err").textContent = "";
+		if (fileCut) { p.truncated = true; if (!p.end) p.end = 3; }
+		TR = p; traceName = name;
+		$("trace-info").textContent = traceInfoText(p, name, fileCut);
+		loadPuzzle(p.n, p.clues, name);
+		$("size-note").textContent = p.n + "\u00d7" + p.n + " puzzle \u00b7 replaying " + name;
+		selectTab("sim");
+		return true;
+	}
+	function readTraceFile(file) {
+		if (!file) return;
+		$("trace-err").textContent = ""; $("trace-info").textContent = "Reading " + file.name + "\u2026";
+		var cut = file.size > MAX_FILE, blob = cut ? file.slice(0, MAX_FILE) : file;
+		function done(text) {
+			if (cut) { var k = text.lastIndexOf("\n"); if (k > 0) text = text.substring(0, k + 1); }
+			if (!loadTraceText(text, file.name, cut)) $("trace-info").textContent = "";
+		}
+		if (blob.text) blob.text().then(done, function () { $("trace-err").textContent = "Could not read " + file.name + "."; });
+		else {
+			var fr = new FileReader();
+			fr.onload = function () { done(String(fr.result)); };
+			fr.onerror = function () { $("trace-err").textContent = "Could not read " + file.name + "."; };
+			fr.readAsText(blob);
+		}
+	}
+	function hasFiles(e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") >= 0; }
+	function initTrace() {
+		var drop = $("drop"), fi = $("trace-file");
+		drop.addEventListener("click", function () { fi.click(); });
+		drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fi.click(); } });
+		fi.addEventListener("change", function () { readTraceFile(fi.files[0]); fi.value = ""; });
+		document.addEventListener("dragover", function (e) { if (hasFiles(e)) { e.preventDefault(); drop.classList.add("over"); } });
+		document.addEventListener("dragleave", function (e) { if (!e.relatedTarget) drop.classList.remove("over"); });
+		document.addEventListener("drop", function (e) {
+			if (!hasFiles(e)) return;
+			e.preventDefault(); drop.classList.remove("over");
+			$("tracebox").open = true; selectTab("puz");
+			readTraceFile(e.dataTransfer.files[0]);
+		});
+		$("b-helper-h").addEventListener("click", function () { saveFile("skytrace.h", HELPER_H, "text/x-chdr"); });
+		$("b-helper-c").addEventListener("click", function () { saveFile("skytrace.c", HELPER_C, "text/x-csrc"); });
+		$("b-sample").addEventListener("click", function () { saveFile("sample-5x5-partial.trace", SAMPLE_TRACE, "text/plain"); });
+		$("b-sample-load").addEventListener("click", function () { loadTraceText(SAMPLE_TRACE, "sample-5x5-partial.trace", false);
+			$("trace-info").textContent += " This sample only shows what a trace looks like. It is not a solution, and it ends part way through."; });
+	}
+	/* Hover and focus notes: each term takes its text from the glossary in "How to read this". */
+	/* Keep a note inside the window: open it leftwards when it would run off the right edge. */
+	function placeTip() {
+		var r = this.getBoundingClientRect();
+		if (r.left + 260 > document.documentElement.clientWidth) this.setAttribute("data-r", "");
+		else this.removeAttribute("data-r");
+	}
+		function initTerms() {
+		var terms = document.querySelectorAll(".term[data-g]");
+		for (var i = 0; i < terms.length; i++) {
+			var d = document.getElementById("gl-" + terms[i].getAttribute("data-g"));
+			if (!d) continue;
+			terms[i].setAttribute("data-tip", d.textContent.trim());
+			terms[i].setAttribute("aria-describedby", d.id);
+			terms[i].addEventListener("mouseenter", placeTip);
+			terms[i].addEventListener("focus", placeTip);
+		}
+	}
+	/* Tabs inside "How to read this". Arrow keys, Home and End move between them. */
+	function initHowto() {
+		var names = ["basics", "gloss", "try"];
+		function pick(nm, focus) {
+			for (var i = 0; i < names.length; i++) {
+				var on = names[i] === nm;
+				$("ht-" + names[i]).setAttribute("aria-selected", on ? "true" : "false");
+				$("ht-" + names[i]).tabIndex = on ? 0 : -1;
+				$("hp-" + names[i]).hidden = !on;
+			}
+			if (focus) $("ht-" + nm).focus();
+		}
+		names.forEach(function (nm, i) {
+			$("ht-" + nm).addEventListener("click", function () { pick(nm); });
+			$("ht-" + nm).addEventListener("keydown", function (e) {
+				var j = e.key === "ArrowRight" ? (i + 1) % names.length : e.key === "ArrowLeft" ? (i + names.length - 1) % names.length
+					: e.key === "Home" ? 0 : e.key === "End" ? names.length - 1 : -1;
+				if (j >= 0) { e.preventDefault(); pick(names[j], true); }
+			});
+		});
+	}
+	function init() {
+		initTerms();
+		initHowto();
+		{
+			var zsel = $("size"), zh = '<option value="">Choose a size\u2026</option>', zn, rt = "";
+			for (zn = 1; zn <= 9; zn++) zh += '<option value="' + zn + '">' + zn + "\u00d7" + zn + "</option>";
+			zsel.innerHTML = zh;
+			zsel.addEventListener("change", function () {
+				$("b-random").disabled = !zsel.value;
+				$("b-random").title = zsel.value ? "Make a random puzzle of this size" : "Pick a size first";
+			});
+			$("b-random").addEventListener("click", function () {
+				if (!zsel.value) return;
+				rt = randomPuzzle(+zsel.value);
+				$("rand-out").value = rt; $("b-copy-clues").disabled = false;
+				$("b-copy-clues").textContent = "Copy clues";
+			});
+			$("b-copy-clues").addEventListener("click", function () {
+				if (!rt) return;
+				copyText(rt).then(function () { $("b-copy-clues").textContent = "Copied"; },
+					function () { $("rand-out").focus(); $("rand-out").select(); });
+			});
+		}
+		$("b-step").addEventListener("click", doStep);
+		$("b-back").addEventListener("click", doBack);
+		$("b-play").addEventListener("click", togglePlay);
+		$("b-dead").addEventListener("click", function () { startFF(true); });
+		$("b-solve").addEventListener("click", function () { startFF(false); });
+		$("b-reset").addEventListener("click", function () { seek(0); });
+		$("b-save").addEventListener("click", saveLog);
+		$("speed").addEventListener("input", function () { $("speed-out").textContent = fmt(SPEEDS[+$("speed").value]) + " steps/s"; });
+		$("speed-out").textContent = fmt(SPEEDS[+$("speed").value]) + " steps/s";
+		function keysPop(show) {
+			$("keys-pop").hidden = !show;
+			$("b-keys").setAttribute("aria-expanded", show ? "true" : "false");
+		}
+		$("b-keys").addEventListener("click", function () { keysPop($("keys-pop").hidden); });
+		document.addEventListener("click", function (e) {
+			if (!$("keys-pop").hidden && !e.target.closest(".keywrap")) keysPop(false);
+		});
+		document.addEventListener("keydown", function (e) {
+			var t = e.target && e.target.tagName;
+			if (e.key === "Escape" && !$("keys-pop").hidden) { keysPop(false); $("b-keys").focus(); return; }
+			if (e.key === "?" && t !== "INPUT" && t !== "SELECT" && t !== "TEXTAREA") { e.preventDefault(); keysPop($("keys-pop").hidden); }
+		});
+		document.addEventListener("keydown", function (e) {
+			var tag = e.target && e.target.tagName;
+			if (empty) return;
+			if (tag === "INPUT" || tag === "SELECT" || tag === "BUTTON" || tag === "TEXTAREA") return;
+			if (e.key === "ArrowRight") { e.preventDefault(); if (!eng.stats().done) doStep(); }
+			else if (e.key === "ArrowLeft") { e.preventDefault(); if (!$("b-back").disabled) doBack(); }
+			else if (e.key === " ") { e.preventDefault(); if (!eng.stats().done) togglePlay(); }
+		});
+		updateOptNote();
+		initTrace();
+		$("log").addEventListener("scroll", function () {
+			var o = $("log"); logStick = o.scrollHeight - o.scrollTop - o.clientHeight < 12;
+		});
+		var brkRadios = document.querySelectorAll('input[name="brk"]');
+		for (var br = 0; br < brkRadios.length; br++) brkRadios[br].addEventListener("change", function (e) {
+			brkView = e.target.value;
+			$("brk-v-num").hidden = brkView !== "num"; $("brk-v-depth").hidden = brkView !== "depth";
+			if (eng) render();
+		});
+		TABS.forEach(function (nm, i) {
+			$("tab-" + nm).addEventListener("click", function () { selectTab(nm); });
+			$("tab-" + nm).addEventListener("keydown", function (e) {
+				var j = e.key === "ArrowRight" ? (i + 1) % TABS.length : e.key === "ArrowLeft" ? (i + TABS.length - 1) % TABS.length
+					: e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1 : -1;
+				if (j >= 0) { e.preventDefault(); selectTab(TABS[j], true); }
+			});
+		});
+		$("b-jump").addEventListener("click", doJump);
+		$("jump").addEventListener("keydown", function (e) { if (e.key === "Enter") doJump(); });
+		$("b-json").addEventListener("click", function () { exportStats("json"); });
+		$("b-csv").addEventListener("click", function () { exportStats("csv"); });
+		$("run-stop").addEventListener("click", function () { stopAll(); render(); });
+		$("run-cancel").addEventListener("click", function () { var o = ffOrigin; stopAll(); seek(o); });
+		// Launch with nothing loaded: an empty 4x4 grid, no clues, no steps.
+		empty = true; N = 4;
+		CL = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+		$("size-note").textContent = "";
+		buildBoard(); buildTable(); buildRules(); seek(0);
+		initTheme();
+	}
+
+	/* Theme menu: Auto follows the system; other choices are remembered on this device. */
+	function initTheme() {
+		var sel = $("theme"), root = document.documentElement;
+		function syncColor() {
+			var m = document.querySelector('meta[name="theme-color"]');
+			if (m) m.setAttribute("content", getComputedStyle(root).getPropertyValue("--bg").trim() || "#edf0f3");
+		}
+		sel.value = root.getAttribute("data-theme") || "auto";
+		if (sel.selectedIndex < 0) sel.value = "auto";
+		sel.addEventListener("change", function () {
+			var v = sel.value;
+			if (v === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", v);
+			try { if (v === "auto") localStorage.removeItem("sky-theme"); else localStorage.setItem("sky-theme", v); } catch (e) {}
+			syncColor();
+		});
+		if (window.matchMedia) {
+			var mq = window.matchMedia("(prefers-color-scheme: dark)");
+			if (mq.addEventListener) mq.addEventListener("change", syncColor);
+		}
+		syncColor();
+	}
+	init();
+})();

@@ -4,80 +4,78 @@
 <meta name="google-site-verification" content="6zjuIC_02HiaYf4Jje_p53rBa6AUoKTfOw37IeIV5Ig" />
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Skyscraper Puzzle Step Visualizer: Backtracking</title>
-<meta name="description" content="Watch a backtracking solver work through a skyscraper puzzle one step at a time. See each placement accepted, rejected or undone.">
+<title>Skyscraper Puzzle Step Visualizer: Trace Replay</title>
+<meta name="description" content="Replay a skyscraper puzzle solver’s trace one step at a time. See each placement accepted, rejected or undone.">
 <meta name="theme-color" content="#1f5fbf">
-<link rel="canonical" href="https://skyscraper-step-visualizer.vercel.app/">
-<script>try{var t=localStorage.getItem("sky-theme");if(/^(light|dark|colorblind|synthwave|terminal|cmyk)$/.test(t))document.documentElement.setAttribute("data-theme",t);if(localStorage.getItem("sky-explain")==="1")document.documentElement.setAttribute("data-explain","on")}catch(e){}</script>
+<script>try{var t=localStorage.getItem("sky-theme");if(/^(light|dark|colorblind|synthwave|terminal|cmyk)$/.test(t))document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <script>
-  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+	window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 <script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+	window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://skyscraper-step-visualizer.vercel.app/">
-<meta property="og:title" content="Skyscraper Puzzle Step Visualizer: Backtracking">
-<meta property="og:description" content="Watch a backtracking solver work through a skyscraper puzzle one step at a time. See each placement accepted, rejected or undone.">
+<meta property="og:title" content="Skyscraper Puzzle Step Visualizer: Trace Replay">
+<meta property="og:description" content="Replay a skyscraper puzzle solver’s trace one step at a time. See each placement accepted, rejected or undone.">
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f5fbf'/%3E%3Crect x='5' y='17' width='5' height='10' fill='%23fff'/%3E%3Crect x='11.5' y='10' width='5' height='17' fill='%23fff'/%3E%3Crect x='18' y='14' width='5' height='13' fill='%23fff'/%3E%3Crect x='24' y='6' width='3' height='21' fill='%23fff'/%3E%3C/svg%3E">
 <style>
 /* Layout: a bench-style tool. Board on the left, counters and controls on the
-   right, per-number breakdown underneath. Shading on cells follows height. */
+	 right, per-number breakdown underneath. Shading on cells follows height. */
 :root {
-  --bg: #edf0f3;
-  --panel: #fafbfc;
-  --cell: #ffffff;
-  --ink: #15212c;
-  --muted: #586979;
-  --line: #d2d9e0;
-  --accent: #1f5fbf;
-  --ok: #166f4e;
-  --rej: #b43228;
-  --dead: #895709;
-  --undo: #7144b5;
-  color-scheme: light;
-  --ok-soft: color-mix(in srgb, var(--ok) 14%, var(--panel));
-  --rej-soft: color-mix(in srgb, var(--rej) 14%, var(--panel));
-  --dead-soft: color-mix(in srgb, var(--dead) 16%, var(--panel));
-  --undo-soft: color-mix(in srgb, var(--undo) 14%, var(--panel));
-  --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--panel));
-  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+	--bg: #edf0f3;
+	--panel: #fafbfc;
+	--cell: #ffffff;
+	--ink: #15212c;
+	--muted: #586979;
+	--line: #d2d9e0;
+	--accent: #1f5fbf;
+	--ok: #166f4e;
+	--rej: #b43228;
+	--dead: #895709;
+	--undo: #7144b5;
+	color-scheme: light;
+	--ok-soft: color-mix(in srgb, var(--ok) 14%, var(--panel));
+	--rej-soft: color-mix(in srgb, var(--rej) 14%, var(--panel));
+	--dead-soft: color-mix(in srgb, var(--dead) 16%, var(--panel));
+	--undo-soft: color-mix(in srgb, var(--undo) 14%, var(--panel));
+	--accent-soft: color-mix(in srgb, var(--accent) 10%, var(--panel));
+	--font: system-ui, -apple-system, "Segoe UI", sans-serif;
+	--mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 /* Themes. Auto follows the system setting; the others are chosen with the Theme menu. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --bg: #0e1419; --panel: #151d25; --cell: #1b252f; --ink: #e5ecf2; --muted: #95a5b4; --line: #2a3642; --accent: #6ba4f2; --ok: #4cc38a; --rej: #f0695f; --dead: #e2a63b; --undo: #b48cf2;
-    color-scheme: dark;
-  }
+	:root:not([data-theme]) {
+		--bg: #0e1419; --panel: #151d25; --cell: #1b252f; --ink: #e5ecf2; --muted: #95a5b4; --line: #2a3642; --accent: #6ba4f2; --ok: #4cc38a; --rej: #f0695f; --dead: #e2a63b; --undo: #b48cf2;
+		color-scheme: dark;
+	}
 }
 :root[data-theme="light"] {
-  --bg: #edf0f3; --panel: #fafbfc; --cell: #ffffff; --ink: #15212c; --muted: #586979; --line: #d2d9e0; --accent: #1f5fbf; --ok: #166f4e; --rej: #b43228; --dead: #895709; --undo: #7144b5;
-  color-scheme: light;
+	--bg: #edf0f3; --panel: #fafbfc; --cell: #ffffff; --ink: #15212c; --muted: #586979; --line: #d2d9e0; --accent: #1f5fbf; --ok: #166f4e; --rej: #b43228; --dead: #895709; --undo: #7144b5;
+	color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #0e1419; --panel: #151d25; --cell: #1b252f; --ink: #e5ecf2; --muted: #95a5b4; --line: #2a3642; --accent: #6ba4f2; --ok: #4cc38a; --rej: #f0695f; --dead: #e2a63b; --undo: #b48cf2;
-  color-scheme: dark;
+	--bg: #0e1419; --panel: #151d25; --cell: #1b252f; --ink: #e5ecf2; --muted: #95a5b4; --line: #2a3642; --accent: #6ba4f2; --ok: #4cc38a; --rej: #f0695f; --dead: #e2a63b; --undo: #b48cf2;
+	color-scheme: dark;
 }
 :root[data-theme="colorblind"] {
-  --bg: #f3f3f1; --panel: #fbfbfa; --cell: #ffffff; --ink: #16181a; --muted: #555a60; --line: #cdd0d3; --accent: #0b5cad; --ok: #00667a; --rej: #a84300; --dead: #2b3640; --undo: #5a3fa0;
-  color-scheme: light;
+	--bg: #f3f3f1; --panel: #fbfbfa; --cell: #ffffff; --ink: #16181a; --muted: #555a60; --line: #cdd0d3; --accent: #0b5cad; --ok: #00667a; --rej: #a84300; --dead: #2b3640; --undo: #5a3fa0;
+	color-scheme: light;
 }
 :root[data-theme="synthwave"] {
-  --bg: #140b2e; --panel: #1e1245; --cell: #271758; --ink: #f7ebff; --muted: #bba3e6; --line: #4b3190; --accent: #ff5ccf; --ok: #36f2c8; --rej: #ff7a59; --dead: #ffd447; --undo: #a98bff;
-  color-scheme: dark;
+	--bg: #140b2e; --panel: #1e1245; --cell: #271758; --ink: #f7ebff; --muted: #bba3e6; --line: #4b3190; --accent: #ff5ccf; --ok: #36f2c8; --rej: #ff7a59; --dead: #ffd447; --undo: #a98bff;
+	color-scheme: dark;
 }
 :root[data-theme="terminal"] {
-  --bg: #050a06; --panel: #0a120c; --cell: #0f1a12; --ink: #c9f7d4; --muted: #86b794; --line: #22402a; --accent: #39d98a; --ok: #7cfc9a; --rej: #ff6b5e; --dead: #ffb454; --undo: #6ec1ff;
-  color-scheme: dark;
-  --font: var(--mono);
+	--bg: #050a06; --panel: #0a120c; --cell: #0f1a12; --ink: #c9f7d4; --muted: #86b794; --line: #22402a; --accent: #39d98a; --ok: #7cfc9a; --rej: #ff6b5e; --dead: #ffb454; --undo: #6ec1ff;
+	color-scheme: dark;
+	--font: var(--mono);
 }
 :root[data-theme="cmyk"] {
-  --bg: #0a0b0f; --panel: #12141b; --cell: #191c26; --ink: #f2f4f7; --muted: #a3acba; --line: #2b3040; --accent: #00c2f0; --ok: #19d3d9; --rej: #ff3d9a; --dead: #ffd21f; --undo: #8f8cff;
-  color-scheme: dark;
+	--bg: #0a0b0f; --panel: #12141b; --cell: #191c26; --ink: #f2f4f7; --muted: #a3acba; --line: #2b3040; --accent: #00c2f0; --ok: #19d3d9; --rej: #ff3d9a; --dead: #ffd21f; --undo: #8f8cff;
+	color-scheme: dark;
 }
 :root[data-theme="cmyk"] body { background-image: linear-gradient(90deg, #00c2f0 0 33.34%, #ff3d9a 33.34% 66.67%, #ffd21f 66.67%); background-size: 100% 4px; background-repeat: no-repeat; }
 :root[data-theme="synthwave"] body { background-image: radial-gradient(ellipse 80% 40% at 50% -5%, color-mix(in srgb, var(--accent) 20%, transparent), transparent); background-repeat: no-repeat; }
@@ -89,12 +87,12 @@
 .theme-pick select { flex: 0 0 auto; min-width: 0; max-width: 100%; }
 * { box-sizing: border-box; }
 body {
-  margin: 0;
-  background: var(--bg); color: var(--ink); font-family: var(--font);
-  font-size: 15px; line-height: 1.45;
-  padding-block: 20px 40px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
+	margin: 0;
+	background: var(--bg); color: var(--ink); font-family: var(--font);
+	font-size: 15px; line-height: 1.45;
+	padding-block: 20px 40px;
+	padding-left: max(16px, env(safe-area-inset-left, 0px));
+	padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 .page { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 h1 { font-size: 1.5rem; line-height: 1.2; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
@@ -108,14 +106,14 @@ h1 { font-size: 1.5rem; line-height: 1.2; margin: 0; letter-spacing: -0.01em; te
 .load-row > * { min-width: 0; }
 #clues { flex: 1 1 320px; font-family: var(--mono); font-size: 0.9rem; }
 input[type="text"], select {
-  background: var(--cell); color: var(--ink); border: 1px solid var(--line);
-  border-radius: 4px; padding: 8px 10px; font: inherit; min-height: 38px;
+	background: var(--cell); color: var(--ink); border: 1px solid var(--line);
+	border-radius: 4px; padding: 8px 10px; font: inherit; min-height: 38px;
 }
 select { flex: 0 1 260px; font-size: 0.88rem; }
 .btn {
-  background: var(--cell); color: var(--ink); border: 1px solid var(--line);
-  border-radius: 4px; padding: 8px 14px; font: inherit; font-weight: 600;
-  min-height: 38px; cursor: pointer;
+	background: var(--cell); color: var(--ink); border: 1px solid var(--line);
+	border-radius: 4px; padding: 8px 14px; font: inherit; font-weight: 600;
+	min-height: 38px; cursor: pointer;
 }
 .btn:hover:not(:disabled) { border-color: var(--accent); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
@@ -136,10 +134,6 @@ select { flex: 0 1 260px; font-size: 0.88rem; }
 @media (max-width: 480px) { .seg label { padding: 8px 9px; font-size: 0.8rem; } }
 
 [hidden] { display: none !important; }
-.cmp-card { display: grid; gap: 10px; }
-.cmp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
-.cmp-card p { margin: 0; color: var(--muted); font-size: 0.82rem; }
-.cmp-card td.best { color: var(--ok); font-weight: 700; }
 .runbar { display: grid; gap: 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--cell); padding: 10px 12px; margin-bottom: 10px; }
 .runbar .run-text { font-family: var(--mono); font-size: 0.84rem; overflow-wrap: anywhere; }
 .runbar .run-actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -157,51 +151,36 @@ select { flex: 0 1 260px; font-size: 0.88rem; }
 .col { display: grid; gap: 16px; min-width: 0; align-content: start; }
 /* One column on narrow screens: board, controls, counters, statistics. */
 @media (max-width: 639px) {
-  .col { display: contents; }
-  .c-board { order: 1; } .c-controls { order: 2; } .c-counters { order: 3; }
+	.col { display: contents; }
+	.c-board { order: 1; } .c-controls { order: 2; } .c-counters { order: 3; }
 }
 .status { display: flex; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 10px; align-items: baseline; }
 .status strong { font-size: 1.02rem; }
 .status .rate { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); }
 .board {
-  display: grid; grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr));
-  gap: 3px; width: 100%; max-width: 560px; margin: 0 auto;
-  container-type: inline-size;
+	display: grid; grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr));
+	gap: 3px; width: 100%; max-width: 560px; margin: 0 auto;
+	container-type: inline-size;
 }
 .cell {
-  aspect-ratio: 1; display: grid; place-items: center; min-width: 0;
-  font-family: var(--mono); font-weight: 700;
-  font-size: calc(100cqw / var(--cols, 7) * 0.44);
-  border-radius: 3px; position: relative;
+	aspect-ratio: 1; display: grid; place-items: center; min-width: 0;
+	font-family: var(--mono); font-weight: 700;
+	font-size: calc(100cqw / var(--cols, 7) * 0.44);
+	border-radius: 3px; position: relative;
 }
 .cell.clue { color: var(--muted); font-weight: 600; font-size: calc(100cqw / var(--cols, 7) * 0.36); }
-.cell.clue.met { color: var(--ok); background: var(--ok-soft); }
-.cell.clue.bad { color: var(--rej); background: var(--rej-soft); }
-.cell.clue.met::after, .cell.clue.bad::after { position: absolute; top: 2px; right: 5px; line-height: 1; font-size: calc(100cqw / var(--cols, 7) * 0.27); font-weight: 700; }
-.cell.clue.met::after { content: "\2713"; }
-.cell.clue.bad::after { content: "\2715"; }
 .cell.in {
-  background: color-mix(in srgb, var(--accent) calc(var(--h, 0) * 42%), var(--cell));
-  border: 1px solid var(--line);
+	background: color-mix(in srgb, var(--accent) calc(var(--h, 0) * 42%), var(--cell));
+	border: 1px solid var(--line);
 }
 .cell.in.band { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .cell.in.band.deadband { border-color: var(--dead); box-shadow: 0 0 0 1px var(--dead); background: var(--dead-soft); }
-.cell.in.cnt { box-shadow: inset 0 0 0 2px var(--ink); }
-.cell.in.gapc { outline: 2px dashed var(--rej); outline-offset: -3px; }
-.cell.in.cnt::after, .cell.in.gapc::after {
-  content: attr(data-s); position: absolute; top: 1px; left: 3px; line-height: 1;
-  font-size: calc(100cqw / var(--cols, 7) * 0.2); font-weight: 700; color: var(--ink);
-}
-.cell.in.gapc::after { color: var(--rej); }
 .cell.in.evok { box-shadow: inset 0 0 0 3px var(--ok); }
 .cell.in.evrej { box-shadow: inset 0 0 0 3px var(--rej); background: var(--rej-soft); color: var(--rej); }
 .cell.in.evundo { box-shadow: inset 0 0 0 3px var(--undo); background: var(--undo-soft); color: var(--undo); }
 .cell.in.ghost { text-decoration: line-through; text-decoration-thickness: 2px; }
 .board.solved .cell.in { border-color: var(--ok); }
-.why { margin: 10px auto 0; max-width: 560px; min-height: 4.4em; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
-.why .w { display: block; color: var(--ink); }
-.why .w b { color: var(--rej); }
-.why .key { display: block; margin-top: 3px; }
+.board.invalid .cell.in { border-color: var(--rej); }
 .trace { margin: 8px auto 0; max-width: 560px; }
 .trace-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; align-items: baseline; }
 .trace-head .note { color: var(--muted); font-size: 0.78rem; font-family: var(--mono); }
@@ -217,11 +196,11 @@ select { flex: 0 1 260px; font-size: 0.88rem; }
 .tab:focus-visible { outline-offset: -2px; }
 .tabcard .runbar { margin-top: 14px; }
 @container (max-width: 560px) {
-  .tabcard table { min-width: 0; }
-  .tabcard th.share, .tabcard td.share { display: none; }
-  .tabcard table { font-size: 0.8rem; }
-  .tabcard th, .tabcard td { padding: 6px 4px; }
-  .tabcard th { white-space: normal; line-height: 1.15; vertical-align: bottom; }
+	.tabcard table { min-width: 0; }
+	.tabcard th.share, .tabcard td.share { display: none; }
+	.tabcard table { font-size: 0.8rem; }
+	.tabcard th, .tabcard td { padding: 6px 4px; }
+	.tabcard th { white-space: normal; line-height: 1.15; vertical-align: bottom; }
 }
 .tabpanel { min-width: 0; }
 .tabpanel > .hint:first-child { margin-top: 0; margin-bottom: 8px; }
@@ -235,7 +214,7 @@ tr.now td { background: var(--accent-soft, var(--cell)); }
 .c-counters { container-type: inline-size; }
 .tiles { display: grid; gap: 8px; }
 .tile { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; background: var(--cell); min-width: 0;
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: center; }
+	display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: center; }
 .tile .t-label { grid-column: 1; grid-row: 1; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; display: flex; gap: 6px; align-items: center; }
 .tile .t-num { grid-column: 2; grid-row: 1 / span 2; text-align: right; font-family: var(--mono); font-weight: 700; font-size: 1.55rem; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
 @media (max-width: 420px) { .tile .t-num { font-size: 1.2rem; } }
@@ -251,13 +230,13 @@ tr.now td { background: var(--accent-soft, var(--cell)); }
 .depth-bar i { display: block; height: 100%; width: 0; background: var(--accent); }
 .depth-text { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
 @container (max-width: 440px) {
-  .tile { grid-template-columns: minmax(0, 1fr); }
-  .tile .t-label { grid-row: 1; }
-  .tile .t-num { grid-column: 1; grid-row: 2; grid-row-end: auto; text-align: left; font-size: 1.35rem; margin-top: 2px; }
-  .tile .t-sub { grid-row: 3; }
-  .minis { grid-template-columns: minmax(0, 1fr); gap: 4px; }
-  .mini { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-  .mini b { text-align: right; overflow-wrap: normal; }
+	.tile { grid-template-columns: minmax(0, 1fr); }
+	.tile .t-label { grid-row: 1; }
+	.tile .t-num { grid-column: 1; grid-row: 2; grid-row-end: auto; text-align: left; font-size: 1.35rem; margin-top: 2px; }
+	.tile .t-sub { grid-row: 3; }
+	.minis { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+	.mini { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+	.mini b { text-align: right; overflow-wrap: normal; }
 }
 
 
@@ -268,7 +247,6 @@ tr.now td { background: var(--accent-soft, var(--cell)); }
 .st dt { font-weight: 600; font-size: 0.88rem; flex: 0 1 auto; }
 .st dd { margin: 0 0 0 auto; font-family: var(--mono); font-weight: 700; font-size: 0.95rem; text-align: right; font-variant-numeric: tabular-nums; flex: 0 1 auto; max-width: 100%; overflow-wrap: anywhere; }
 .st p { flex: 1 0 100%; margin: 1px 0 0; color: var(--muted); font-size: 0.76rem; line-height: 1.3; }
-.rules-h { display: block; margin-top: 4px; }
 
 /* Controls */
 .controls { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -328,15 +306,6 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
 .fmt-list dt { font-weight: 600; }
 .fmt-list dd { margin: 0; font-family: var(--mono); font-weight: 700; }
 .fmt-list .how { font-family: var(--font); font-weight: 400; color: var(--muted); font-size: 0.8rem; }
-/* Explanations of how the built-in solvers decide stay hidden until the footer switch is on. */
-:root:not([data-explain="on"]) .spoil { display: none !important; }
-.predict { margin-top: 10px; }
-.pcheck { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
-.pcheck input { margin: 0; accent-color: var(--accent); }
-.predict-q { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: 4px; background: var(--accent-soft); }
-.predict-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-.predict-row kbd { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-left: 4px; }
-.predict .hint:empty { display: none; }
 /* Hover and focus notes for the glossary terms. Their text comes from the glossary in "How to read this". */
 .term { position: relative; border-bottom: 1px dotted currentColor; cursor: help; }
 .term::after { content: attr(data-tip); display: none; position: absolute; left: 0; top: calc(100% + 6px); z-index: 30; width: max-content; max-width: min(26ch, 72vw); padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--ink); color: var(--bg); font: 400 0.78rem/1.35 var(--font); letter-spacing: 0; text-transform: none; text-align: left; white-space: normal; pointer-events: none; }
@@ -360,9 +329,6 @@ th.share, td.share { text-align: left; width: 22%; min-width: 120px; }
 .keys dt { min-width: 7.5em; margin: 0; }
 .keys dd { margin: 0; font-size: 0.88rem; }
 kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--cell); color: var(--ink); }
-.xt { justify-self: start; font-size: 0.72rem; color: var(--muted); }
-.xt label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
-.xt input { margin: 0; accent-color: var(--accent); }
 .howto code { font-family: var(--mono); font-size: 0.82rem; background: var(--cell); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; overflow-wrap: anywhere; }
 .howto .btn { margin-top: 6px; }
 .howto a { color: var(--accent); }
@@ -381,336 +347,236 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
 </head>
 <body>
 <div class="page">
-  <header>
-    <div class="head-top">
-      <h1>Skyscraper Step Visualizer</h1>
-      <div class="theme-pick">
-        <label class="label" for="theme">Theme</label>
-        <select id="theme" aria-label="Colour theme">
-          <option value="auto">Auto (system)</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="colorblind">Color blind</option>
-          <option value="synthwave">Synthwave</option>
-          <option value="terminal">Terminal</option>
-          <option value="cmyk">CMYK</option>
-        </select>
-      </div>
-    </div>
-    <p class="lede">Watch a solver place buildings, reject, back up and undo until every clue fits. Pick a solving option, or load a trace from your own solver. Any size from 1×1 to 9×9.</p>
-    <p class="lede about">A skyscraper puzzle is a logic grid: place a building of every height in each row and column so the clues around the edge, which say how many buildings are visible from that side, all hold. This tool shows how a backtracking search works through such a puzzle, one placement at a time, with counters, a depth chart and a step log to follow along.</p>
-    <details class="howto" id="howto">
-      <summary>How to read this</summary>
-      <div class="tabs" role="tablist" aria-label="How to read this">
-        <button class="tab" type="button" role="tab" id="ht-basics" aria-controls="hp-basics" aria-selected="true">The basics</button>
-        <button class="tab" type="button" role="tab" id="ht-gloss" aria-controls="hp-gloss" aria-selected="false" tabindex="-1">Glossary</button>
-        <button class="tab" type="button" role="tab" id="ht-try" aria-controls="hp-try" aria-selected="false" tabindex="-1">Try it</button>
-      </div>
-      <div id="hp-basics" role="tabpanel" aria-labelledby="ht-basics">
-      <h2>The board</h2>
-      <p>Each clue on the edge says how many buildings you can see looking along that row or column from that side. A taller building hides every shorter one behind it. Every row and column holds each height exactly once. New to skyscraper puzzles? You can <a href="https://www.brainbashers.com/skyscrapers.asp" target="_blank" rel="noopener noreferrer">try one on BrainBashers</a> first.</p>
-      <h2>The counters</h2>
-      <ul>
-        <li><b>Accepted:</b> a building was placed and every clue can still be met.</li>
-        <li><b>Rejected:</b> a placement broke a clue, so it was removed straight away and the solver tries the next option.</li>
-        <li><b>Dead end:</b> nothing is left to try at this point, so the solver backs up and undoes the placement before it. This is <span class="term" tabindex="0" data-g="backtrack">backtracking</span>.</li>
-      </ul>
-      <div class="spoil">
-      <h2>Why the options differ</h2>
-      <p>Row by row and column by column place the tallest buildings first and check the clues after every placement, so a bad choice is caught early. Brute force fills cells one at a time and checks a clue only once its whole row or column is full, so it explores far more dead ends before noticing a mistake. Forward checking fills cells in the same order as brute force, but each placement also crosses its number off the empty cells in its row and column, and is rejected at once if one of them is left with nothing to try. Fewest options first drops the fixed order: it always fills the empty cell that has the fewest numbers left to try. Propagation uses the clues to rule out numbers before the search starts, makes every move the remaining numbers force, and only guesses when nothing is forced, so it needs far fewer guesses to go wrong.</p>
-      </div>
-      </div>
-      <div id="hp-gloss" role="tabpanel" aria-labelledby="ht-gloss" hidden>
-      <dl class="gloss">
-        <div><dt>Accepted</dt><dd id="gl-accepted">A building was placed and nothing is wrong yet, so the solver keeps going.</dd></div>
-        <div><dt>Rejected</dt><dd id="gl-rejected">A building was placed, but the solver spotted a problem and took it back at once.</dd></div>
-        <div><dt>Dead end</dt><dd id="gl-dead">Nothing is left to try at this point, so the solver has to go back.</dd></div>
-        <div><dt>Backtrack</dt><dd id="gl-backtrack">Going back to an earlier choice, undoing it and trying something different.</dd></div>
-        <div><dt>Depth</dt><dd id="gl-depth">How many buildings are standing on the board right now. The deeper the search, the more are placed.</dd></div>
-        <div class="spoil"><dt>Pruning</dt><dd id="gl-pruning">Giving up on a whole branch of the search early, because it cannot lead to a solution, instead of trying everything under it.</dd></div>
-      </dl>
-      </div>
-      <div id="hp-try" role="tabpanel" aria-labelledby="ht-try" hidden>
-      <h2>Try this</h2>
-      <ol>
-        <li>Pick a size and an example puzzle, open the Simulation tab and press Step a few times to follow the log.</li>
-        <li>Press Solve, then look at the depth chart: it shows how far the solver climbed and fell back.</li>
-        <li>Press Compare all options and see how many steps each option needed.</li>
-      </ol>
-      </div>
-    </details>
-  </header>
+	<header>
+		<div class="head-top">
+			<h1>Skyscraper Step Visualizer</h1>
+			<div class="theme-pick">
+				<label class="label" for="theme">Theme</label>
+				<select id="theme" aria-label="Colour theme">
+					<option value="auto">Auto (system)</option>
+					<option value="light">Light</option>
+					<option value="dark">Dark</option>
+					<option value="colorblind">Color blind</option>
+					<option value="synthwave">Synthwave</option>
+					<option value="terminal">Terminal</option>
+					<option value="cmyk">CMYK</option>
+				</select>
+			</div>
+		</div>
+		
+		<p class="lede">Watch a solver place buildings, reject, back up and undo until every clue fits. Load a trace from your own solver and replay it here, one step at a time. Any size from 1×1 to 9×9.</p>
+		<p class="lede about">A skyscraper puzzle is a logic grid: place a building of every height in each row and column so the clues around the edge, which say how many buildings are visible from that side, all hold. This tool shows how a backtracking search works through such a puzzle, one placement at a time, with counters, a depth chart and a step log to follow along.</p>
+		<details class="howto" id="howto">
+			<summary>How to read this</summary>
+			<div class="tabs" role="tablist" aria-label="How to read this">
+				<button class="tab" type="button" role="tab" id="ht-basics" aria-controls="hp-basics" aria-selected="true">The basics</button>
+				<button class="tab" type="button" role="tab" id="ht-gloss" aria-controls="hp-gloss" aria-selected="false" tabindex="-1">Glossary</button>
+				<button class="tab" type="button" role="tab" id="ht-try" aria-controls="hp-try" aria-selected="false" tabindex="-1">Try it</button>
+			</div>
+			<div id="hp-basics" role="tabpanel" aria-labelledby="ht-basics">
+			<h2>The board</h2>
+			<p>Each clue on the edge says how many buildings you can see looking along that row or column from that side. A taller building hides every shorter one behind it. Every row and column holds each height exactly once. New to skyscraper puzzles? You can <a href="https://www.brainbashers.com/skyscrapers.asp" target="_blank" rel="noopener noreferrer">try one on BrainBashers</a> first.</p>
+			<h2>Steps and events</h2>
+			<p>Your trace file lists events: one for each placement and one for each removal. The page replays steps, and the two numbers can differ. A placement taken out again at once is two events but one step (a rejection). A removal that backs up is one event but two steps: a dead end, then the undo.</p>
+			<h2>The counters</h2>
+			<ul>
+				<li><b>Accepted:</b> a building was placed and kept, and the solver went on from it.</li>
+				<li><b>Rejected:</b> a placement was taken out again straight away, and the solver moves on to the next option.</li>
+				<li><b>Dead end:</b> nothing is left to try at this point, so the solver backs up and undoes the placement before it. This is <span class="term" tabindex="0" data-g="backtrack">backtracking</span>.</li>
+			</ul>
+			</div>
+			<div id="hp-gloss" role="tabpanel" aria-labelledby="ht-gloss" hidden>
+			<dl class="gloss">
+				<div><dt>Accepted</dt><dd id="gl-accepted">A building was placed and nothing is wrong yet, so the solver keeps going.</dd></div>
+				<div><dt>Rejected</dt><dd id="gl-rejected">A building was placed, but the solver spotted a problem and took it back at once.</dd></div>
+				<div><dt>Dead end</dt><dd id="gl-dead">Nothing is left to try at this point, so the solver has to go back.</dd></div>
+				<div><dt>Backtrack</dt><dd id="gl-backtrack">Going back to an earlier choice, undoing it and trying something different.</dd></div>
+				<div><dt>Depth</dt><dd id="gl-depth">How many buildings are standing on the board right now. The deeper the search, the more are placed.</dd></div>
+			</dl>
+			</div>
+			<div id="hp-try" role="tabpanel" aria-labelledby="ht-try" hidden>
+			<h2>Try this</h2>
 
-  <div class="card" id="nowasm" role="alert" hidden>
-    <strong>This browser can't run WebAssembly.</strong>
-    <p class="hint">The built-in solvers need it. Try a current version of Chrome, Edge, Firefox or Safari.</p>
-  </div>
+			<ol>
+				<li>Press Use your own solver in the Puzzle tab and load a trace file, or press Load sample trace to try one.</li>
+				<li>Open the Simulation tab and press Step a few times to follow the log.</li>
+				<li>Press Solve, then look at the depth chart: it shows how far the solver climbed and fell back.</li>
+			</ol>
+			</div>
+		</details>
+	</header>
 
-  <div class="stage">
-    <div class="col">
-    <section class="card c-board" aria-label="Board">
-      <div class="status"><strong id="status">Loading</strong><span class="rate" id="rate"></span></div>
-      <div class="board" id="board" role="img" aria-label="Skyscraper grid with clues"></div>
-      <div class="why" id="why" aria-live="off"></div>
-      <div class="trace">
-        <div class="trace-head"><span class="label"><span class="term" tabindex="0" data-g="depth">Depth</span> over time</span><span class="note" id="trace-note"></span></div>
-        <svg id="trace" viewBox="0 0 600 72" preserveAspectRatio="none" role="img" aria-label="Chart of how many buildings were standing at each step"></svg>
-        <div class="trace-axis"><span>step 0</span><span id="trace-key"></span><span id="trace-end"></span></div>
-      </div>
-      <p class="board-note">Clues sit on the edge they are read from. A clue gets a ✓ and a tint when its view is locked in, and a ✕ when the last placement broke it. Darker cells hold taller buildings.<span class="spoil"> After a rejection, the dark-ringed numbers show what the failing clue counted.</span></p>
-    </section>
 
-      <section class="card c-counters" aria-label="Counters">
-        <div class="tiles">
-          <div class="tile ok"><div class="t-label"><span aria-hidden="true">&#10003;</span><span class="term" tabindex="0" data-g="accepted">Accepted</span></div><div class="t-num" id="c-acc">0</div><div class="t-sub" id="ts-acc">Placed, and kept for now.</div></div>
-          <div class="tile rej"><div class="t-label"><span aria-hidden="true">&#10005;</span><span class="term" tabindex="0" data-g="rejected">Rejected</span></div><div class="t-num" id="c-rej">0</div><div class="t-sub" id="ts-rej">Placed, then removed at once.</div></div>
-          <div class="tile dead"><div class="t-label"><span aria-hidden="true">&#8856;</span><span class="term" tabindex="0" data-g="dead">Dead ends</span></div><div class="t-num" id="c-dead">0</div><div class="t-sub" id="ts-dead">Nothing left to try here. Each one makes the solver undo the placement before it.</div></div>
-        </div>
-        <div class="minis">
-          <div class="mini"><span class="label">Steps</span><b id="c-steps">0</b></div>
-          <div class="mini"><span class="label">Calls</span><b id="c-calls">0</b></div>
-          <div class="mini"><span class="label">Removals</span><b id="c-rem">0</b></div>
-        </div>
-        <div class="depth">
-          <span class="label">Buildings standing</span>
-          <div class="depth-bar"><i id="depth-fill"></i></div>
-          <div class="depth-text" id="depth-text"></div>
-          <div class="depth-text" id="space-text" title="Grids where every row and column holds each height once. The clues narrow these down to the answer."></div>
-        </div>
-      </section>
+	<div class="stage">
+		<div class="col">
+		<section class="card c-board" aria-label="Board">
+			<div class="status"><strong id="status">Loading</strong><span class="rate" id="rate"></span></div>
+			<div class="board" id="board" role="img" aria-label="Skyscraper grid with clues"></div>
+			<div class="trace">
+				<div class="trace-head"><span class="label"><span class="term" tabindex="0" data-g="depth">Depth</span> over time</span><span class="note" id="trace-note"></span></div>
+				<svg id="trace" viewBox="0 0 600 72" preserveAspectRatio="none" role="img" aria-label="Chart of how many buildings were standing at each step"></svg>
+				<div class="trace-axis"><span>step 0</span><span id="trace-key"></span><span id="trace-end"></span></div>
+			</div>
+			<p class="board-note">Clues sit on the edge they are read from. Darker cells hold taller buildings.</p>
+		</section>
 
-    </div>
+			<section class="card c-counters" aria-label="Counters">
+				<div class="tiles">
+					<div class="tile ok"><div class="t-label"><span aria-hidden="true">&#10003;</span><span class="term" tabindex="0" data-g="accepted">Accepted</span></div><div class="t-num" id="c-acc">0</div><div class="t-sub" id="ts-acc">Placed, and kept for now.</div></div>
+					<div class="tile rej"><div class="t-label"><span aria-hidden="true">&#10005;</span><span class="term" tabindex="0" data-g="rejected">Rejected</span></div><div class="t-num" id="c-rej">0</div><div class="t-sub" id="ts-rej">Placed, then removed at once.</div></div>
+					<div class="tile dead"><div class="t-label"><span aria-hidden="true">&#8856;</span><span class="term" tabindex="0" data-g="dead">Dead ends</span></div><div class="t-num" id="c-dead">0</div><div class="t-sub" id="ts-dead">Nothing left to try here. Each one makes the solver undo the placement before it.</div></div>
+				</div>
+				<div class="minis">
+					<div class="mini"><span class="label">Steps</span><b id="c-steps">0</b></div>
+					<div class="mini"><span class="label">Calls</span><b id="c-calls">0</b></div>
+					<div class="mini"><span class="label">Removals</span><b id="c-rem">0</b></div>
+				</div>
+				<div class="depth">
+					<span class="label">Buildings standing</span>
+					<div class="depth-bar"><i id="depth-fill"></i></div>
+					<div class="depth-text" id="depth-text"></div>
+					<div class="depth-text" id="space-text" title="Grids where every row and column holds each height once. The clues narrow these down to the answer."></div>
+				</div>
+			</section>
 
-    <div class="col">
-      <section class="card c-controls tabcard" aria-label="Controls and results">
-        <div class="runbar" id="runbar" hidden>
-          <div class="run-text" id="run-text" role="status"></div>
-          <div class="prog indet" id="run-prog"><i id="run-fill"></i></div>
-          <div class="run-actions">
-            <button class="btn" id="run-stop" type="button">Stop here</button>
-            <button class="btn" id="run-cancel" type="button">Cancel and go back</button>
-          </div>
-        </div>
-        <div class="tabs" role="tablist" aria-label="Panels">
-          <button class="tab" role="tab" id="tab-puz" aria-controls="panel-puz" aria-selected="true" type="button">Puzzle</button>
-          <button class="tab" role="tab" id="tab-sim" aria-controls="panel-sim" aria-selected="false" tabindex="-1" type="button">Simulation</button>
-          <button class="tab" role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false" tabindex="-1" type="button">Statistics</button>
-          <button class="tab" role="tab" id="tab-brk" aria-controls="panel-brk" aria-selected="false" tabindex="-1" type="button">Breakdown</button>
-          <button class="tab" role="tab" id="tab-cmp" aria-controls="panel-cmp" aria-selected="false" tabindex="-1" type="button">Compare</button>
-        </div>
-        <div class="tabpanel load" role="tabpanel" id="panel-puz" aria-labelledby="tab-puz">
-          <div class="load-row">
-            <input type="text" id="clues" spellcheck="false" autocomplete="off" placeholder="Type clues, separated by spaces" aria-label="Clues, separated by spaces">
-            <button class="btn primary" id="load" type="button">Load puzzle</button>
-          </div>
-          <div class="pick-row">
-            <span class="label">Or pick one</span>
-            <select id="size" aria-label="Puzzle size"></select>
-            <select id="preset" aria-label="Example puzzles" disabled></select>
-            <button class="btn" id="b-random" type="button" disabled title="Pick a size first">Random puzzle</button>
-          </div>
-          <p class="err" id="err" role="alert"></p>
-          <p class="hint" id="size-note"></p>
-          <p class="hint">Clues go in one row, side by side: from the top, from the bottom, from the left, then from the right. Each number is how many buildings you can see looking in from that spot.</p>
-          <details class="howto" id="fmt">
-            <summary>How to type the clues</summary>
-            <p>Type one number for every position around the board, separated by spaces. Take the four sides in this order:</p>
-            <ol>
-              <li><b>From the top:</b> one clue per column, left to right.</li>
-              <li><b>From the bottom:</b> one clue per column, left to right.</li>
-              <li><b>From the left:</b> one clue per row, top to bottom.</li>
-              <li><b>From the right:</b> one clue per row, top to bottom.</li>
-            </ol>
-            <p>Example for a 4&times;4 board. The arrows show the direction each clue looks, and the small digit is its position on that side.</p>
-            <div class="fmt" role="img" aria-label="A 4 by 4 board with clues 3 2 2 1 along the top, 2 3 1 3 along the bottom, 4 2 1 2 down the left and 1 2 4 2 down the right">
-          <span></span> <span class="k t" data-i="1">3</span> <span class="k t" data-i="2">2</span> <span class="k t" data-i="3">2</span> <span class="k t" data-i="4">1</span> <span></span>
-          <span class="k l" data-i="1">4</span> <span class="g"></span> <span class="g"></span> <span class="g"></span> <span class="g"></span> <span class="k r" data-i="1">1</span>
-          <span class="k l" data-i="2">2</span> <span class="g"></span> <span class="g"></span> <span class="g"></span> <span class="g"></span> <span class="k r" data-i="2">2</span>
-          <span class="k l" data-i="3">1</span> <span class="g"></span> <span class="g"></span> <span class="g"></span> <span class="g"></span> <span class="k r" data-i="3">4</span>
-          <span class="k l" data-i="4">2</span> <span class="g"></span> <span class="g"></span> <span class="g"></span> <span class="g"></span> <span class="k r" data-i="4">2</span>
-          <span></span> <span class="k b" data-i="1">2</span> <span class="k b" data-i="2">3</span> <span class="k b" data-i="3">1</span> <span class="k b" data-i="4">3</span> <span></span>
-            </div>
-            <dl class="fmt-list">
-              <div><dt>From the top</dt><dd>3 2 2 1 <span class="how">(columns 1 to 4)</span></dd></div>
-              <div><dt>From the bottom</dt><dd>2 3 1 3 <span class="how">(columns 1 to 4)</span></dd></div>
-              <div><dt>From the left</dt><dd>4 2 1 2 <span class="how">(rows 1 to 4)</span></dd></div>
-              <div><dt>From the right</dt><dd>1 2 4 2 <span class="how">(rows 1 to 4)</span></dd></div>
-            </dl>
-            <p>Typed as one row: <code>3 2 2 1 2 3 1 3 4 2 1 2 1 2 4 2</code></p>
-            <button class="btn" id="b-example" type="button">Try this example</button>
-          </details>
-          <details class="tracebox" id="tracebox">
-            <summary>Use your own solver</summary>
-            <p class="hint">Nothing of yours runs here. Your C solver writes a trace of every number it places and removes, and this page replays it with the same board, counters, depth chart and log as the built-in solvers.</p>
-            <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a trace file, or drop one anywhere on the page">
-              <span>Choose a trace file, or drop one anywhere on this page</span>
-              <input type="file" id="trace-file" accept=".trace,.txt,text/plain" hidden>
-            </div>
-            <p class="err" id="trace-err" role="alert"></p>
-            <p class="hint" id="trace-info" role="status"></p>
-            <div class="mode-row spoil">
-              <label class="label" for="trace-style">Telling rejections apart</label>
-              <select id="trace-style" aria-label="How rejections are told apart in a trace">
-                <option value="auto">Automatic</option>
-                <option value="tall">Tallest first: checked after every placement</option>
-                <option value="complete">Brute force: only finished rows and columns</option>
-                <option value="none">No guessing</option>
-              </select>
-            </div>
-            <p class="opt-note spoil" id="trace-style-note"></p>
-            <div class="mode-row">
-              <span class="label">C helper</span>
-              <button class="btn" id="b-helper-h" type="button">skytrace.h</button>
-              <button class="btn" id="b-helper-c" type="button">skytrace.c</button>
-              <button class="btn" id="b-sample" type="button" title="A small trace to try the loader with">Sample trace</button>
-            </div>
-            <p class="hint">Add the two helper files to your project, then make four calls: <code>trace_start(game-&gt;size, game-&gt;clues)</code> once after parsing, <code>trace_place(row, col, num)</code> and <code>trace_remove(row, col)</code> inside the helpers that write and clear a cell, and <code>trace_end(solved)</code> after <code>solve()</code> returns. Run the program once and it writes <code>skyscraper.trace</code> next to it.</p>
-            <p class="hint">A placement taken out again at once is counted as a rejection, and every other removal as an undo preceded by a dead end. Runs longer than 2,000,000 events show their first part.</p>
-          </details>
-        </div>
-        <div class="tabpanel" role="tabpanel" id="panel-sim" aria-labelledby="tab-sim" hidden>
-          <div class="mode-row">
-            <span class="label">Solving options</span>
-      <div class="seg" role="radiogroup" aria-label="Solving options">
-        <input type="radio" name="family" id="f-tall" value="tall" checked><label for="f-tall">Tallest first</label>
-        <input type="radio" name="family" id="f-brute" value="brute"><label for="f-brute">Brute force</label>
-        <input type="radio" name="family" id="f-fc" value="fc"><label for="f-fc">Forward checking</label>
-        <input type="radio" name="family" id="f-mrv" value="mrv"><label for="f-mrv">Fewest options first</label>
-        <input type="radio" name="family" id="f-pb" value="pb"><label for="f-pb">Propagation</label>
-        <input type="radio" name="family" id="f-trace" value="trace" disabled><label for="f-trace" id="f-trace-l" title="Load a trace from your own solver first">Your solver</label>
-      </div>
-          </div>
-          <div class="mode-row" id="dir-row">
-            <span class="label">Tallest first goes</span>
-            <div class="seg" role="radiogroup" aria-label="Tallest first order">
-              <input type="radio" name="dir" id="d-row" value="row" checked><label for="d-row">Row by row</label>
-              <input type="radio" name="dir" id="d-col" value="col"><label for="d-col">Column by column</label>
-            </div>
-          </div>
-          <p class="opt-note" id="opt-note"></p>
-          <div class="mode-row">
-            <button class="btn" id="b-compare" type="button" title="Run every option on these clues and compare the results">Compare all options</button>
-            <button class="btn" id="b-share" type="button" title="Copy a link that reopens this puzzle, solving option and current step" disabled>Copy link</button>
-          </div>
-          <p class="hint" id="share-note" role="status"></p>
-          <div class="controls">
-            <button class="btn" id="b-back" type="button" aria-keyshortcuts="ArrowLeft">&larr; Back</button>
-            <button class="btn primary" id="b-step" type="button" aria-keyshortcuts="ArrowRight">Step &rarr;</button>
-            <button class="btn" id="b-play" type="button" aria-keyshortcuts="Space">Play</button>
-            <button class="btn" id="b-dead" type="button">Next dead end</button>
-            <button class="btn" id="b-solve" type="button">Solve</button>
-            <button class="btn" id="b-reset" type="button">Reset</button>
-            <button class="btn" id="b-save" type="button">Save log (.txt)</button>
-            <button class="btn" id="b-json" type="button" title="Counters, statistics and the breakdown as JSON">Stats (.json)</button>
-            <button class="btn" id="b-csv" type="button" title="The breakdown by number as CSV">Breakdown (.csv)</button>
-          </div>
-          <div class="predict">
-            <label class="pcheck"><input type="checkbox" id="practice"> Predict each step</label>
-            <div class="predict-q" id="predict-q" hidden>
-              <span class="label">What happens on the next step?</span>
-              <div class="predict-row" role="group" aria-label="Your prediction">
-                <button class="btn" type="button" data-g="1">&#10003; Accepted <kbd>1</kbd></button>
-                <button class="btn" type="button" data-g="2">&#10005; Rejected <kbd>2</kbd></button>
-                <button class="btn" type="button" data-g="3">&#8856; Dead end <kbd>3</kbd></button>
-              </div>
-            </div>
-            <p class="hint" id="predict-msg" role="status" aria-live="polite"></p>
-          </div>
-          <div class="speed">
-            <label class="label" for="speed">Play speed</label>
-            <input type="range" id="speed" min="0" max="10" value="5">
-            <output id="speed-out" for="speed"></output>
-          </div>
-          <div class="jump">
-            <label class="label" for="jump">Go to step</label>
-            <input type="text" id="jump" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="e.g. 1,000,000" aria-label="Step number to jump to">
-            <button class="btn" id="b-jump" type="button">Go</button>
-          </div>
-          <p class="hint" id="save-note" role="status"></p>
-          <div class="hint" id="hint"><span class="keywrap">
-              <button class="linkbtn" id="b-keys" type="button" aria-expanded="false" aria-controls="keys-pop" aria-keyshortcuts="?">Keyboard shortcuts <kbd>?</kbd></button>
-              <div class="keypop" id="keys-pop" role="dialog" aria-label="Keyboard shortcuts" hidden>
+		</div>
+
+		<div class="col">
+			<section class="card c-controls tabcard" aria-label="Controls and results">
+				<div class="runbar" id="runbar" hidden>
+					<div class="run-text" id="run-text" role="status"></div>
+					<div class="prog indet" id="run-prog"><i id="run-fill"></i></div>
+					<div class="run-actions">
+						<button class="btn" id="run-stop" type="button">Stop here</button>
+						<button class="btn" id="run-cancel" type="button">Cancel and go back</button>
+					</div>
+				</div>
+				<div class="tabs" role="tablist" aria-label="Panels">
+					<button class="tab" role="tab" id="tab-puz" aria-controls="panel-puz" aria-selected="true" type="button">Puzzle</button>
+					<button class="tab" role="tab" id="tab-sim" aria-controls="panel-sim" aria-selected="false" tabindex="-1" type="button">Simulation</button>
+					<button class="tab" role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false" tabindex="-1" type="button">Statistics</button>
+					<button class="tab" role="tab" id="tab-brk" aria-controls="panel-brk" aria-selected="false" tabindex="-1" type="button">Breakdown</button>
+				</div>
+				<div class="tabpanel load" role="tabpanel" id="panel-puz" aria-labelledby="tab-puz">
+					<p class="hint">Load a trace file from your own solver to replay it here. The puzzle and its clues come from the file.</p>
+					<p class="hint" id="size-note"></p>
+					<div class="pick-row">
+						<span class="label">Need clues?</span>
+						<select id="size" aria-label="Puzzle size"></select>
+						<button class="btn" id="b-random" type="button" disabled title="Pick a size first">Random puzzle</button>
+					</div>
+					<div class="load-row">
+						<input type="text" id="rand-out" readonly spellcheck="false" autocomplete="off" placeholder="Clues for a random puzzle appear here" aria-label="Clues of the random puzzle, in one line">
+						<button class="btn" id="b-copy-clues" type="button" disabled>Copy clues</button>
+					</div>
+					<p class="hint" id="rand-note" role="status">A random puzzle that has an answer, as one line of clues for your solver: from the top, from the bottom, from the left, then from the right. The answer is not shown.</p>
+					<details class="tracebox" id="tracebox" open>
+						<summary>Use your own solver</summary>
+						<p class="hint">Nothing of yours runs here. Your C solver writes a trace of every number it places and removes, and this page replays it with a board, counters, depth chart and log.</p>
+						<div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a trace file, or drop one anywhere on the page">
+							<span>Choose a trace file, or drop one anywhere on this page</span>
+							<input type="file" id="trace-file" accept=".trace,.txt,text/plain" hidden>
+						</div>
+						<p class="err" id="trace-err" role="alert"></p>
+						<p class="hint" id="trace-info" role="status"></p>
+						<div class="mode-row">
+							<span class="label">C helper</span>
+							<button class="btn" id="b-helper-h" type="button">skytrace.h</button>
+							<button class="btn" id="b-helper-c" type="button">skytrace.c</button>
+							<button class="btn" id="b-sample" type="button" title="A small trace to try the loader with">Sample trace</button>
+														<button class="btn" id="b-sample-load" type="button" title="Replay the sample trace here">Load sample trace</button>
+						</div>
+						<p class="hint">This sample only shows what a trace looks like: numbers being placed and removed. It is not a solution, and it ends part way through.
+						<p class="hint">Add the two helper files to your project, then make four calls: <code>trace_start(game-&gt;size, game-&gt;clues)</code> once after parsing, <code>trace_place(row, col, num)</code> and <code>trace_remove(row, col)</code> inside the helpers that write and clear a cell, and <code>trace_end(solved)</code> after <code>solve()</code> returns. Run the program once and it writes <code>skyscraper.trace</code> next to it.</p>
+						<p class="hint"><b>Remember:</b> when you are done testing, delete <code>skytrace.c</code> and <code>skytrace.h</code>, the <code>#include</code> and every <code>trace_</code> call from your project before you submit it.</p>
+						<p class="hint">A placement taken out again at once is counted as a rejection, and every other removal as an undo preceded by a dead end. Runs longer than 2,000,000 events show their first part.</p>
+					</details>
+				</div>
+				<div class="tabpanel" role="tabpanel" id="panel-sim" aria-labelledby="tab-sim" hidden>
+					<p class="opt-note" id="opt-note"></p>
+					<div class="controls">
+						<button class="btn" id="b-back" type="button" aria-keyshortcuts="ArrowLeft">&larr; Back</button>
+						<button class="btn primary" id="b-step" type="button" aria-keyshortcuts="ArrowRight">Step &rarr;</button>
+						<button class="btn" id="b-play" type="button" aria-keyshortcuts="Space">Play</button>
+						<button class="btn" id="b-dead" type="button">Next dead end</button>
+						<button class="btn" id="b-solve" type="button">Solve</button>
+						<button class="btn" id="b-reset" type="button">Reset</button>
+						<button class="btn" id="b-save" type="button">Save log (.txt)</button>
+						<button class="btn" id="b-json" type="button" title="Counters, statistics and the breakdown as JSON">Stats (.json)</button>
+						<button class="btn" id="b-csv" type="button" title="The breakdown by number as CSV">Breakdown (.csv)</button>
+					</div>
+					<div class="speed">
+						<label class="label" for="speed">Play speed</label>
+						<input type="range" id="speed" min="0" max="10" value="5">
+						<output id="speed-out" for="speed"></output>
+					</div>
+					<div class="jump">
+						<label class="label" for="jump">Go to step</label>
+						<input type="text" id="jump" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="e.g. 1,000,000" aria-label="Step number to jump to">
+						<button class="btn" id="b-jump" type="button">Go</button>
+					</div>
+					<p class="hint" id="save-note" role="status"></p>
+					<div class="hint" id="hint"><span class="keywrap">
+							<button class="linkbtn" id="b-keys" type="button" aria-expanded="false" aria-controls="keys-pop" aria-keyshortcuts="?">Keyboard shortcuts <kbd>?</kbd></button>
+							<div class="keypop" id="keys-pop" role="dialog" aria-label="Keyboard shortcuts" hidden>
 <dl class="keys">
-  <div><dt><kbd>&rarr;</kbd></dt><dd>Step forward</dd></div>
-  <div><dt><kbd>&larr;</kbd></dt><dd>Step back</dd></div>
-  <div><dt><kbd>Space</kbd></dt><dd>Play or pause</dd></div>
-  <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Answer a prediction, when Predict each step is on</dd></div>
-  <div><dt><kbd>?</kbd></dt><dd>Show or hide this list</dd></div>
+	<div><dt><kbd>&rarr;</kbd></dt><dd>Step forward</dd></div>
+	<div><dt><kbd>&larr;</kbd></dt><dd>Step back</dd></div>
+	<div><dt><kbd>Space</kbd></dt><dd>Play or pause</dd></div>
+	<div><dt><kbd>?</kbd></dt><dd>Show or hide this list</dd></div>
 </dl>
 <p class="hint">The keys pause while a button or a text box has focus, so press Tab until nothing is highlighted, or click on a blank part of the page.</p>
-              </div>
-            </span></div>
-          <ol class="log" id="log" aria-live="off" aria-label="Step log, oldest first" tabindex="0"></ol>
-        </div>
-        <div class="tabpanel" role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" hidden>
-          <span class="label">Statistics</span>
-          <dl class="stats">
-            <div class="st"><dt>Acceptance rate</dt><dd id="st-rate">&mdash;</dd><p>Accepted &divide; (accepted + rejected).<span class="spoil"> A high rate means the clue check <span class="term" data-r tabindex="0" data-g="pruning">prunes</span> little.</span></p></div>
-            <div class="st"><dt>Placements still standing</dt><dd id="st-stand">&mdash;</dd><p>Buildings on the board now, out of every placement ever accepted.</p></div>
-            <div class="st"><dt>Longest climb back</dt><dd id="st-climb">0</dd><p>Most placements undone in a row without a new acceptance.</p></div>
-            <div class="st" id="st-forced-row" hidden><dt>Forced moves and guesses</dt><dd id="st-forced">&mdash;</dd><p>Placements the numbers left in the cells forced, and placements that were guesses. Includes the ones later undone.</p></div>
-            <div class="st" id="st-time-row"><dt>Solve time</dt><dd id="st-time">&mdash;</dd><p>Time spent in Solve and Next dead end, with the average speed. Play is paced by its slider, so it isn't timed.</p></div>
-          </dl>
-          <div class="spoil">
-            <span class="label rules-h">Rejections by rule</span>
-            <dl class="stats" id="rules-list"></dl>
-            <p class="hint">Each rejection is counted once, for the first failing view in check order: row left, row right, column top, column bottom.</p>
-          </div>
-        </div>
-      <div class="tabpanel" role="tabpanel" id="panel-brk" aria-labelledby="tab-brk" hidden>
-        <div class="seg" role="radiogroup" aria-label="Breakdown view">
-          <input type="radio" name="brk" id="brk-num" value="num" checked><label for="brk-num">By number</label>
-          <input type="radio" name="brk" id="brk-depth" value="depth"><label for="brk-depth">By depth</label>
-        </div>
-        <div id="brk-v-num">
-        <div class="scroll">
-          <table>
-            <caption><span class="label" id="by-caption">Where the work goes, by number placed</span></caption>
-            <thead><tr><th id="by-h0">Number</th><th>Calls</th><th class="share">Share of calls</th><th>Accepted</th><th>Rejected</th><th>Accept rate</th><th>Dead ends</th></tr></thead>
-            <tbody id="by-body"></tbody>
-          </table>
-        </div>
-        </div>
-        <div id="brk-v-depth" hidden>
-        <p class="hint">Depth is how many buildings were standing when the solver tried a placement. Deep rows are only reached after the shallow ones survive, so a low accept rate at a shallow depth means the clues prune early.</p>
-        <div class="scroll depth-scroll">
-          <table>
-            <thead><tr><th>Depth</th><th class="spoil" id="dh-place">Placing</th><th>Reached</th><th class="share">Share of reached</th><th>Accepted</th><th>Rejected</th><th>Accept rate</th><th>Dead ends</th></tr></thead>
-            <tbody id="depth-body"></tbody>
-          </table>
-        </div>
-        </div>
-      </div>
-      <div class="tabpanel cmp-card" role="tabpanel" id="panel-cmp" aria-labelledby="tab-cmp" hidden>
-        <div class="cmp-head">
-          <span class="label" id="cmp-label">Every option on the current clues</span>
-          <button class="btn" id="b-cmp-stop" type="button" hidden>Stop</button>
-        </div>
-        <div class="scroll">
-          <table>
-            <thead><tr><th>Option</th><th>Result</th><th>Steps</th><th>Accepted</th><th>Rejected</th><th>Time</th><th class="spoil">vs fewest</th></tr></thead>
-            <tbody id="cmp-body"></tbody>
-          </table>
-        </div>
-        <p id="cmp-note">Press Compare all options in the Simulation tab to run the options side by side on their own copies of the puzzle. The board is not affected.</p>
-      </div>
-      </section>
+							</div>
+						</span></div>
+					<ol class="log" id="log" aria-live="off" aria-label="Step log, oldest first" tabindex="0"></ol>
+				</div>
+				<div class="tabpanel" role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" hidden>
+					<span class="label">Statistics</span>
+					<dl class="stats">
+						<div class="st"><dt>Acceptance rate</dt><dd id="st-rate">&mdash;</dd><p>Accepted &divide; (accepted + rejected).</p></div>
+						<div class="st"><dt>Placements still standing</dt><dd id="st-stand">&mdash;</dd><p>Buildings on the board now, out of every placement ever accepted.</p></div>
+						<div class="st"><dt>Longest climb back</dt><dd id="st-climb">0</dd><p>Most placements undone in a row without a new acceptance.</p></div>
+					</dl>
+				</div>
+			<div class="tabpanel" role="tabpanel" id="panel-brk" aria-labelledby="tab-brk" hidden>
+				<div class="seg" role="radiogroup" aria-label="Breakdown view">
+					<input type="radio" name="brk" id="brk-num" value="num" checked><label for="brk-num">By number</label>
+					<input type="radio" name="brk" id="brk-depth" value="depth"><label for="brk-depth">By depth</label>
+				</div>
+				<div id="brk-v-num">
+				<div class="scroll">
+					<table>
+						<caption><span class="label" id="by-caption">Where the work goes, by number placed</span></caption>
+						<thead><tr><th id="by-h0">Number</th><th>Calls</th><th class="share">Share of calls</th><th>Accepted</th><th>Rejected</th><th>Accept rate</th><th>Dead ends</th></tr></thead>
+						<tbody id="by-body"></tbody>
+					</table>
+				</div>
+				</div>
+				<div id="brk-v-depth" hidden>
+				<p class="hint">Depth is how many buildings were standing when the solver tried a placement. Deep rows are only reached after the shallow ones survive, so a low accept rate at a shallow depth means the clues prune early.</p>
+				<div class="scroll depth-scroll">
+					<table>
+						<thead><tr><th>Depth</th><th id="dh-place">Placement</th><th>Reached</th><th class="share">Share of reached</th><th>Accepted</th><th>Rejected</th><th>Accept rate</th><th>Dead ends</th></tr></thead>
+						<tbody id="depth-body"></tbody>
+					</table>
+				</div>
+				</div>
+			</div>
+			</section>
 
-    </div>
-  </div>
+		</div>
+	</div>
 
-  <footer class="site-foot">
-    <p><b>Privacy:</b> this page runs entirely in your browser. The puzzles and trace files you load are never uploaded. This site’s host, Vercel, collects anonymous visit and page-speed statistics: the pages viewed, referrer, country, browser, device type, operating system and load times. It uses no cookies, and Vercel says the data is not tied to any individual or IP address. Only your theme and explanation settings are remembered on your device.</p>
-    <p>&copy; 2026 <a href="https://github.com/melwongwk" target="_blank" rel="noopener">Melvin Wong</a>. Free to use and modify under the MIT License.</p>
-    <p class="xt"><label><input type="checkbox" id="explain"> Explanations</label></p>
-  </footer>
+	<footer class="site-foot">
+		<p><b>Privacy:</b> this page runs entirely in your browser. The puzzles and trace files you load are never uploaded. This site’s host, Vercel, collects anonymous visit and page-speed statistics: the pages viewed, referrer, country, browser, device type, operating system and load times. It uses no cookies, and Vercel says the data is not tied to any individual or IP address. Only your theme choice is remembered on your device.</p>
+		<p>&copy; 2026 <a href="https://github.com/melwongwk" target="_blank" rel="noopener">Melvin Wong</a>. Free to use and modify under the MIT License.</p>
+	</footer>
 
 </div>
 
 <script src="js/engine.js"></script>
-<script src="js/engine_wasm.js"></script>
-<script src="js/presets.js"></script>
 <script src="js/helper.js"></script>
+<script src="js/sample.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
