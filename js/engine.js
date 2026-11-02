@@ -18,7 +18,7 @@ function engineMeta(n) {
 		 rejection: the solver took it out again straight away.
 	 - Any other removal is an undo. Every undo is preceded by the dead end that
 		 forced it, so a dead end is added just before it.   */
-var TRACE_MAX_EVENTS = 2000000;
+var TRACE_MAX_EVENTS = 5000000;
 
 function parseTrace(text, maxEvents) {
 	maxEvents = maxEvents || TRACE_MAX_EVENTS;

@@ -9,7 +9,7 @@
 	var lastRender = 0;
 	var LOG_CAP = 100000, saving = false, epoch = 0;
 	var empty = true, ffTarget = 0, ffOrigin = 0;
-	var TR = null, traceName = "", MAX_FILE = 48 * 1024 * 1024;
+	var TR = null, traceName = "", MAX_FILE = 64 * 1024 * 1024;
 	/* A trace that says "solved" but leaves a board that breaks the rules or the clues. */
 	function badFinish(s) { return s.status === "solved" && !!TR && !!TR.verdict; }
 	function verdictText() { return TR.verdict.replace(/\.$/, "").replace(/^./, function (c) { return c.toLowerCase(); }); }

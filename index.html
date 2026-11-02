@@ -489,7 +489,7 @@ kbd { font: 600 0.78rem var(--mono); padding: 1px 6px; border: 1px solid var(--l
 						<p class="hint">This sample only shows what a trace looks like: numbers being placed and removed. It is not a solution, and it ends part way through.
 						<p class="hint">Add the two helper files to your project, then make four calls: <code>trace_start(game-&gt;size, game-&gt;clues)</code> once after parsing, <code>trace_place(row, col, num)</code> and <code>trace_remove(row, col)</code> inside the helpers that write and clear a cell, and <code>trace_end(solved)</code> after <code>solve()</code> returns. Run the program once and it writes <code>skyscraper.trace</code> next to it.</p>
 						<p class="hint"><b>Remember:</b> when you are done testing, delete <code>skytrace.c</code> and <code>skytrace.h</code>, the <code>#include</code> and every <code>trace_</code> call from your project before you submit it.</p>
-						<p class="hint">A placement taken out again at once is counted as a rejection, and every other removal as an undo preceded by a dead end. Runs longer than 2,000,000 events show their first part.</p>
+						<p class="hint">A placement taken out again at once is counted as a rejection, and every other removal as an undo preceded by a dead end. Runs longer than 5,000,000 events show their first part.</p>
 					</details>
 				</div>
 				<div class="tabpanel" role="tabpanel" id="panel-sim" aria-labelledby="tab-sim" hidden>
