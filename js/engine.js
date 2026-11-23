@@ -226,7 +226,8 @@ function createTraceEngine(n, clues, tr) {
 		p++;
 		d++; if (d > maxD) maxD = d;
 		if (d === total) {
-			if (tr.end === 1) { done = true; status = "solved"; }
+			/* A full board is only the end of the run if no events follow it: a solver may fill the board, find it wrong and take it apart. */
+			if (tr.end === 1 && p >= cnt) { done = true; status = "solved"; }
 			return 1;
 		}
 		callsD[d]++; calls++; callsBy[key(d)]++;
