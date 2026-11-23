@@ -11,6 +11,9 @@ Everything runs in the browser; there is no server and no build step.
 1. Download `skytrace.h` and `skytrace.c` from the Puzzle tab (Use your own solver).
 2. Add them to your project and call `trace_start`, `trace_place`, `trace_remove`
    and `trace_end` from your solver.
+   The clues are 4 * size ints: top, bottom, left, right. For a 2D `int clues[4][size]`
+   call `trace_start(size, clues[0])`; for an `int **` of four rows call
+   `trace_start_rows(size, clues)`.
 3. Run your solver. It writes a `skyscraper.trace` file.
 4. Choose that file on the page, or drop it anywhere on the page.
 5. When you are done testing, delete `skytrace.c`, `skytrace.h`, the `#include`
