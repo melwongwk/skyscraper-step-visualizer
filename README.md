@@ -14,6 +14,10 @@ Everything runs in the browser; there is no server and no build step.
    The clues are 4 * size ints: top, bottom, left, right. For a 2D `int clues[4][size]`
    call `trace_start(size, clues[0])`; for an `int **` of four rows call
    `trace_start_rows(size, clues)`.
+   The helper keeps its own copy of the board, so writing over a filled cell and
+   `trace_place(row, col, 0)` (to clear a cell) both work. If you undo by restoring
+   a saved copy of the board, call `trace_board(grid)` right after the restore
+   (`trace_board_rows(grid)` for an `int **`); it logs only what changed.
 3. Run your solver. It writes a `skyscraper.trace` file.
 4. Choose that file on the page, or drop it anywhere on the page.
 5. When you are done testing, delete `skytrace.c`, `skytrace.h`, the `#include`

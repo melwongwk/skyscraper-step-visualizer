@@ -25,15 +25,24 @@ function parseTrace(text, maxEvents) {
 	var len = text.length, pos = 0, lineNo = 0, started = false;
 	var n = 0, clues = null, count = 0, end = 0, truncated = false;
 	var K = null, R = null, C = null, V = null, grid = null, standing = 0;
-	var firstPlace = 0, warnings = [];
+	var firstPlace = 0, warnings = [], noNl = false, endSeen = false, hadSolution = false, inferred = false;
 	function err(msg) { return { error: "Line " + lineNo + ": " + msg }; }
+	/* A last line with no newline after it was probably cut off by a crash or a Ctrl+C: ignore it, with a note, instead of refusing the file. */
+	function bad(msg, text) {
+		if (noNl && clues) {
+			warnings.push("The last line (\u201c" + text.substring(0, 30) + "\u201d) was cut off, so it was ignored.");
+			return null;
+		}
+		return err(msg);
+	}
 	function alloc(cap) {
 		K = new Uint8Array(cap); R = new Uint8Array(cap); C = new Uint8Array(cap); V = new Uint8Array(cap);
 	}
 	var cap = 0;
 	while (pos < len) {
 		var nl = text.indexOf("\n", pos);
-		if (nl < 0) nl = len;
+		noNl = nl < 0;
+		if (noNl) nl = len;
 		var line = text.substring(pos, nl);
 		pos = nl + 1; lineNo++;
 		if (line.charCodeAt(line.length - 1) === 13) line = line.substring(0, line.length - 1);
@@ -51,19 +60,25 @@ function parseTrace(text, maxEvents) {
 			var parts = t.split(/\s+/);
 			var isPlace = c0 === "+";
 			if (parts.length !== (isPlace ? 4 : 3) || parts[0] !== c0) {
-				return err("expected " + (isPlace ? "+ row column number" : "- row column") + ".");
+				var b1 = bad("expected " + (isPlace ? "+ row column number" : "- row column") + ".", t);
+				if (b1) return b1;
+				break;
 			}
 			var rr = +parts[1], cc = +parts[2], vv = isPlace ? +parts[3] : 0;
 			if (!/^\d+$/.test(parts[1]) || !/^\d+$/.test(parts[2]) || (isPlace && !/^\d+$/.test(parts[3]))) {
-				return err("row, column and number must be whole numbers.");
+				var b2 = bad("row, column and number must be whole numbers.", t);
+				if (b2) return b2;
+				break;
 			}
-			if (rr < 1 || rr > n || cc < 1 || cc > n) return err("cell (" + parts[1] + ", " + parts[2] + ") is outside the " + n + "×" + n + " board. Rows and columns count from 1.");
+			if (rr < 1 || rr > n || cc < 1 || cc > n) return err("cell (" + parts[1] + ", " + parts[2] + ") is outside the " + n + "×" + n + " board. Rows and columns in the file count from 1." +
+				((rr === n + 1 || cc === n + 1) ? " If you passed 1-based rows or columns to trace_place, pass 0-based ones instead: the helper adds 1 itself." : ""));
 			var idx = (rr - 1) * n + (cc - 1);
 			if (isPlace) {
 				if (vv < 1 || vv > n) return err("a " + vv + " cannot go in a " + n + "×" + n + " puzzle. Numbers run from 1 to " + n + ".");
 				if (grid[idx]) return err("cell (" + rr + ", " + cc + ") already holds a " + grid[idx] + ". Remove it before placing again.");
 				grid[idx] = vv; standing++;
 				if (!firstPlace) firstPlace = vv;
+				if (!hadSolution && standing === n * n && fastValid(n, clues, grid)) hadSolution = true;
 			} else {
 				if (!grid[idx]) return err("cell (" + rr + ", " + cc + ") is already empty, so there is nothing to remove.");
 				grid[idx] = 0; standing--;
@@ -84,34 +99,128 @@ function parseTrace(text, maxEvents) {
 			n = +m[2]; grid = new Int8Array(n * n);
 		} else if (key === "clues") {
 			if (!n) return err("put n (the puzzle size) before clues.");
+			var given = m[2].trim().split(/[\s,]+/).filter(Boolean).length;
+			if (given !== 4 * n) return err("n is " + n + ", so this line needs " + 4 * n + " clues (top, bottom, left, right), but it has " + given + ".");
 			var p = parseClues(m[2]);
 			if (p.error) return err(p.error);
-			if (p.n !== n) return err("n is " + n + " but there are " + (p.clues.length) + " clues, which is a " + p.n + "×" + p.n + " puzzle.");
 			clues = p.clues; alloc(1024); cap = 1024;
 		} else if (key === "end") {
 			var w = (m[2] || "").toLowerCase();
 			if (w === "solved") end = 1; else if (w === "nosolution") end = 2; else if (w === "cut") end = 3;
-			else return err("end must be followed by solved, nosolution or cut.");
+			else {
+				var b3 = bad("end must be followed by solved, nosolution or cut.", t);
+				if (b3) return b3;
+				break;
+			}
+			endSeen = true;
 			break;
 		} else {
-			return err("did not understand “" + t.substring(0, 30) + (t.length > 30 ? "…" : "") + "”.");
+			var b4 = bad("did not understand “" + t.substring(0, 30) + (t.length > 30 ? "…" : "") + "”.", t);
+			if (b4) return b4;
+			break;
 		}
 	}
 	if (!started) return { error: "The file is empty." };
 	if (!clues) return { error: "The file has no puzzle: it needs n and clues lines before the events." };
 	if (truncated) end = 3;
-	var total = n * n, verdict = "";
+	var total = n * n, verdict = "", hint = "";
+	if (endSeen) {
+		var q = pos;
+		while (q < len) {
+			var e2 = text.indexOf("\n", q);
+			if (e2 < 0) e2 = len;
+			var l2 = text.substring(q, e2).trim();
+			if (l2 !== "" && l2.charAt(0) !== "#") {
+				warnings.push("Lines after the end line were ignored. If this file holds more than one run, load the runs one at a time.");
+				break;
+			}
+			q = e2 + 1;
+		}
+	}
+	/* No end line (the program exited without calling trace_end) but the board is full and right: treat the run as solved. */
+	if (!end && !truncated && count > 0 && standing === total && fastValid(n, clues, grid)) { end = 1; inferred = true; }
 	if (end === 1) {
-		if (standing !== total) warnings.push("The trace says solved, but " + (total - standing) + " cell" + (total - standing === 1 ? " is" : "s are") + " still empty at the end.");
-		else verdict = checkBoard(n, clues, grid);
+		if (standing !== total) {
+			if (!hadSolution) warnings.push("The trace says solved, but " + (total - standing) + " cell" + (total - standing === 1 ? " is" : "s are") + " still empty at the end.");
+		} else {
+			verdict = checkBoard(n, clues, grid);
+			if (verdict) hint = explainMismatch(n, clues, grid);
+		}
 	} else if (end === 2 && standing !== 0) {
 		warnings.push("The trace says no solution, but " + standing + " building" + (standing === 1 ? " is" : "s are") + " still standing at the end.");
 	}
 	var res = {
 		n: n, clues: clues, count: count, K: K, R: R, C: C, V: V, end: end, truncated: truncated,
-		standing: standing, firstPlace: firstPlace, warnings: warnings, verdict: verdict
+		standing: standing, firstPlace: firstPlace, warnings: warnings, verdict: verdict, hint: hint,
+		inferred: inferred, hadSolution: hadSolution
 	};
 	return res;
+}
+
+/* True when g is a full board that satisfies every row, column and clue. No messages and no allocation: it runs on the hot path. */
+function fastValid(n, clues, g) {
+	var i, j, rs, cs, mx, v, x, full = (1 << (n + 1)) - 2;
+	for (i = 0; i < n; i++) {
+		rs = 0; cs = 0;
+		for (j = 0; j < n; j++) { rs |= 1 << g[i * n + j]; cs |= 1 << g[j * n + i]; }
+		if (rs !== full || cs !== full) return false;
+	}
+	for (i = 0; i < n; i++) {
+		mx = 0; v = 0;
+		for (j = 0; j < n; j++) { x = g[j * n + i]; if (x > mx) { mx = x; v++; } }
+		if (v !== clues[i]) return false;
+		mx = 0; v = 0;
+		for (j = n - 1; j >= 0; j--) { x = g[j * n + i]; if (x > mx) { mx = x; v++; } }
+		if (v !== clues[n + i]) return false;
+		mx = 0; v = 0;
+		for (j = 0; j < n; j++) { x = g[i * n + j]; if (x > mx) { mx = x; v++; } }
+		if (v !== clues[2 * n + i]) return false;
+		mx = 0; v = 0;
+		for (j = n - 1; j >= 0; j--) { x = g[i * n + j]; if (x > mx) { mx = x; v++; } }
+		if (v !== clues[3 * n + i]) return false;
+	}
+	return true;
+}
+
+/* The board is full and wrong. If it would be right with the clue groups read in another order (or one listed backwards), say so:
+	 that is the usual cause when a solver is correct but its trace is not. */
+function explainMismatch(n, clues, g) {
+	var i, j, k, mx, v, x, vis = [[], [], [], []];
+	for (i = 0; i < n; i++) {
+		mx = 0; v = 0; for (j = 0; j < n; j++) { x = g[j * n + i]; if (x > mx) { mx = x; v++; } } vis[0].push(v);
+		mx = 0; v = 0; for (j = n - 1; j >= 0; j--) { x = g[j * n + i]; if (x > mx) { mx = x; v++; } } vis[1].push(v);
+		mx = 0; v = 0; for (j = 0; j < n; j++) { x = g[i * n + j]; if (x > mx) { mx = x; v++; } } vis[2].push(v);
+		mx = 0; v = 0; for (j = n - 1; j >= 0; j--) { x = g[i * n + j]; if (x > mx) { mx = x; v++; } } vis[3].push(v);
+	}
+	var names = ["top", "bottom", "left", "right"], ord = ["first", "second", "third", "fourth"];
+	var used = [false, false, false, false], pick = [0, 0, 0, 0], rev = [false, false, false, false];
+	function same(a, b, back) {
+		for (var q = 0; q < n; q++) if (a[q] !== b[back ? n - 1 - q : q]) return false;
+		return true;
+	}
+	function search(b) {
+		if (b === 4) return true;
+		var blk = clues.slice(b * n, b * n + n), sd, bk;
+		for (sd = 0; sd < 4; sd++) {
+			if (used[sd]) continue;
+			for (bk = 0; bk < 2; bk++) {
+				if (same(blk, vis[sd], bk === 1)) {
+					used[sd] = true; pick[b] = sd; rev[b] = bk === 1;
+					if (search(b + 1)) return true;
+					used[sd] = false;
+				}
+			}
+		}
+		return false;
+	}
+	if (!search(0)) return "";
+	if (pick[0] === 2 && pick[1] === 3 && pick[2] === 0 && pick[3] === 1 && !rev[0] && !rev[1] && !rev[2] && !rev[3]) {
+		return "The board is a valid solution if its rows and columns are swapped. Check that trace_place and trace_remove get the row first and the column second. " +
+			"Or the clues were given to trace_start in the order left, right, top, bottom: they must be top, bottom, left, right.";
+	}
+	var parts = [];
+	for (k = 0; k < 4; k++) parts.push("the " + ord[k] + " group is the " + names[pick[k]] + " clues" + (rev[k] ? " (listed in reverse)" : ""));
+	return "The board is a valid solution if the clues are read in a different order: " + parts.join(", ") + ". Pass them to trace_start as top, bottom, left, right, each side listed from left to right or top to bottom.";
 }
 
 /* "" when the board is a valid solution, else the first problem found. */
@@ -146,7 +255,7 @@ function createTraceEngine(n, clues, tr) {
 	var climb = 0, longestClimb = 0;
 	var d = 0, maxD = 0, steps = 0;
 	var accepted = 0, rejected = 0, deadEnds = 0, undone = 0, calls = 1;
-	var done = false, status = "running";
+	var done = false, status = "running", solStep = 0;
 	var lastType = 0, lastR = 0, lastC = 0, lastNum = 0;
 	function key(x) { var g = (x / n) | 0; if (g >= n) g = n - 1; return g + 1; }
 	callsBy[key(0)] = 1;
@@ -193,7 +302,7 @@ function createTraceEngine(n, clues, tr) {
 				done = true; status = "nosolution";
 				return 3;
 			}
-			done = true; status = tr.end === 1 && tr.standing === total ? "solved" : "cut";
+			done = true; status = tr.end === 1 && (tr.standing === total || tr.hadSolution) ? "solved" : "cut";
 			return 0;
 		}
 		steps++;
@@ -214,6 +323,8 @@ function createTraceEngine(n, clues, tr) {
 		r = R[p]; c = C[p]; num = V[p]; idx = r * n + c;
 		var paired = p + 1 < cnt && K[p + 1] === 2 && R[p + 1] === r && C[p + 1] === c;
 		grid[idx] = num;
+		/* A placement that completes a valid board is a found solution, not a rejection, even if the solver takes it out again at once. */
+		if (paired && d + 1 === total && fastValid(n, clues, grid)) paired = false;
 		if (paired) {
 			rejected++; rejBy[key(d)]++; rejD[d]++;
 			grid[idx] = 0; p += 2;
@@ -226,6 +337,7 @@ function createTraceEngine(n, clues, tr) {
 		p++;
 		d++; if (d > maxD) maxD = d;
 		if (d === total) {
+			if (!solStep && fastValid(n, clues, grid)) solStep = steps;
 			/* A full board is only the end of the run if no events follow it: a solver may fill the board, find it wrong and take it apart. */
 			if (tr.end === 1 && p >= cnt) { done = true; status = "solved"; }
 			return 1;
@@ -273,7 +385,7 @@ function createTraceEngine(n, clues, tr) {
 			return {
 				n: n, d: d, maxD: maxD, steps: steps, accepted: accepted,
 				rejected: rejected, deadEnds: deadEnds, undone: undone, calls: calls,
-				done: done, status: status, pendingUndo: pend === 4,
+				done: done, status: status, pendingUndo: pend === 4, solutionStep: solStep,
 				last: { type: lastType, r: lastR, c: lastC, num: lastNum },
 				by: { calls: callsBy, acc: accBy, rej: rejBy, dead: deadBy, undo: undoBy, dcalls: callsD, dacc: accD, drej: rejD, ddead: deadD },
 				longestClimb: longestClimb,

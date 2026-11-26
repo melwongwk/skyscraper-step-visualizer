@@ -193,17 +193,19 @@
 				el.style.setProperty("--h", v ? (v / N).toFixed(3) : "0");
 			}
 		}
-		$("board").classList.toggle("solved", s.status === "solved" && !badFinish(s));
+		$("board").classList.toggle("solved", s.status === "solved" && !badFinish(s) && s.d === N * N);
 		$("board").classList.toggle("invalid", badFinish(s));
 		// status
 		var st;
 		if (empty) st = "No puzzle loaded";
 		else if (s.status === "cut") st = (TR.truncated ? "Showing the first part of a longer run" : "The trace ends here") + " \u00b7 " + fmt(s.steps) + " steps";
 		else if (badFinish(s)) st = "Trace says solved, but " + verdictText() + " \u00b7 " + fmt(s.steps) + " steps";
+		else if (s.status === "solved" && s.d !== total) st = (s.solutionStep ? "Solution found at step " + fmt(s.solutionStep) : "A solution appeared during the run") + ", then the solver kept searching \u00b7 " + fmt(s.steps) + " steps";
 		else if (s.status === "solved") st = "Solved in " + fmt(s.steps) + " steps";
 		else if (s.status === "nosolution") st = "No solution, found after " + fmt(s.steps) + " steps";
 		else if (mode === "ff") st = "Fast-forwarding…";
-		else st = "Replaying your solver \u00b7 " + s.d + " of " + total + " standing" + (s.pendingUndo ? " (backing up)" : "");
+		else st = "Replaying your solver \u00b7 " + s.d + " of " + total + " standing" + (s.pendingUndo ? " (backing up)" : "") +
+			(s.solutionStep && s.steps >= s.solutionStep ? " \u00b7 solution found at step " + fmt(s.solutionStep) : "");
 		if (!empty && s.done) st += " (" + fmt(TR.count) + " events in your file)";
 		$("status").textContent = st;
 		$("rate").textContent = "";
@@ -370,7 +372,8 @@
 			if (hit) { log = [{ n: s.steps, t: 3, snap: s }]; }
 			else if (s.done) {
 				log = [{ n: s.steps, t: s.status === "solved" && !badFinish(s) ? 1 : s.status === "cut" ? 4 : 3,
-					text: badFinish(s) ? "The trace says solved, but " + verdictText() + "."
+					text: badFinish(s) ? "The trace says solved, but " + verdictText() + "." + (TR.hint ? " " + TR.hint : "")
+						: s.status === "solved" && s.d !== N * N ? "A valid solution appeared at step " + fmt(s.solutionStep) + ". The solver then kept searching."
 						: s.status === "solved" ? "Solved. Every clue matches."
 						: s.status === "cut" ? "The trace ends here." : "No solution. The search tried every possibility." }];
 			}
@@ -584,7 +587,7 @@
 					acceptanceRate: att ? s.accepted / att : null,
 					placementsStanding: standing, placementsEverAccepted: s.accepted,
 					buildingsStandingNow: standing, deepestReached: s.maxD, cells: total,
-					longestClimbBack: s.longestClimb
+					longestClimbBack: s.longestClimb, solutionFoundAtStep: s.solutionStep || null
 				},
 				breakdownByNumber: by,
 				breakdownByDepth: depthRows(s)
@@ -634,13 +637,22 @@
 	/* ---------- traces from your own solver ---------- */
 	function traceInfoText(p, name, fileCut) {
 		var bits = [name + ": " + p.n + "\u00d7" + p.n + ", " + fmt(p.count) + " events"];
+		var full = p.standing === p.n * p.n;
 		if (p.truncated || fileCut) bits.push("showing the first part of a longer run");
+		else if (p.inferred) bits.push("no end line, but the board is full and matches every clue, so the run is treated as solved");
 		else if (p.end === 0) bits.push("no end line, so the solver may have been stopped");
 		else if (p.end === 3) bits.push("the trace was cut off here, so it is a partial run");
-		if (p.end === 1 && !p.warnings.length) {
-			bits.push(p.verdict ? "reported solved, but " + p.verdict.replace(/\.$/, "").replace(/^./, function (c) { return c.toLowerCase(); }) : "your solver's final board is a valid solution");
+		if (p.end === 1 && !p.inferred) {
+			if (full) {
+				bits.push(p.verdict ? "reported solved, but " + p.verdict.replace(/\.$/, "").replace(/^./, function (c) { return c.toLowerCase(); }) : "your solver's final board is a valid solution");
+			} else if (p.hadSolution) {
+				bits.push("a valid solution appears during the run, and the solver then kept searching");
+			}
 		}
-		return bits.join(" \u00b7 ") + (p.warnings.length ? ". " + p.warnings.join(" ") : ".");
+		var text = bits.join(" \u00b7 ") + ".";
+		if (p.verdict && p.hint) text += " " + p.hint;
+		if (p.warnings.length) text += " " + p.warnings.join(" ");
+		return text;
 	}
 	function loadTraceText(text, name, fileCut) {
 		var p = parseTrace(text, TRACE_MAX_EVENTS);
